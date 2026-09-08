@@ -34,7 +34,7 @@ inputs are hosted at
 image or casual RGB video. The output contains object-level pose, geometry,
 and material assets that can be rendered, edited, and used in simulation.
 
-![Fire3D end-to-end perception and reconstruction method.](assets/method_overview.png)
+[![Fire3D end-to-end perception and reconstruction method.](assets/method_overview.png)](assets/method_overview.pdf)
 
 **Method overview.** Fire3D lifts RGB-D observations into a shared 3D scene
 representation, predicts object instances and 6-DoF poses, and reconstructs
@@ -42,7 +42,7 @@ the sparse structure, shape, and PBR fields with three cascaded flow-matching
 models. Batched decoders and mesh post-processing produce the final textured
 scene assets.
 
-![Fire3D Hierarchical Compression VAE architecture.](assets/hcvae.png)
+[![Fire3D Hierarchical Compression VAE architecture.](assets/hcvae.png)](assets/hcvae.pdf)
 
 **HC-VAE.** The Hierarchical Compression VAE reduces each sparse SC-VAE shape
 or material field from a `32^3 x 32` representation to an `8^3 x 64` latent.

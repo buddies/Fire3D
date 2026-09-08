@@ -115,7 +115,7 @@ queries. Their dataset-specific sampling and remeshing settings remain frozen.
 
 ## Method
 
-[![Fire3D method](assets/method_network_v2.png)](assets/method_network_v2.pdf)
+[![Fire3D method](assets/method_overview.png)](assets/method_overview.pdf)
 
 Fire3D lifts image features into a shared 3D point cloud, predicts scene
 instances and oriented boxes, and reconstructs each object through cascaded
