@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Train a Fire3D shape or PBR Hierarchical Compression VAE.
 
-This is the local launcher for ``trellis2/configs/shape_vae_x2.yaml``.  It is
-based on the reference TRELLIS2 launcher, with the behavior kept generic:
+The released recipe uses one process on one GPU:
 
-    python train_shape_vae_x2.py --config trellis2/configs/shape_vae_x2.yaml
+    CUDA_VISIBLE_DEVICES=0 python -m training.hcvae.train \
+        --config configs/training/hcvae/shape.yaml
 
-    torchrun --standalone --nproc_per_node=4 train_shape_vae_x2.py \
-        --config trellis2/configs/shape_vae_x2.yaml
+The launcher retains distributed support for internal scaling experiments,
+but distributed execution is not required by the public HC-VAE recipe.
 
 Config values can be overridden with dotted keys:
 

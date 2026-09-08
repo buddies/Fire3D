@@ -89,6 +89,9 @@ The default protocols use classifier-free guidance 3, flow and VAE batches of
 protocols enable the validated background room-box fit before background
 reconstruction.
 
+The released HC-VAE recipe uses one process on one GPU; its configured
+per-GPU batch size is therefore the effective global batch size.
+
 ## Use
 
 ```bash

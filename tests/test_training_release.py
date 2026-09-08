@@ -137,3 +137,16 @@ def test_hcvae_encoder_and_decoder_public_aliases_are_documented():
         text = path.read_text(encoding="utf-8")
         assert "reconstruction/vae/shape/ckpts/encoder.pt" in text or "{encoder,decoder}.pt" in text
         assert "reconstruction/vae/pbr/ckpts/encoder.pt" in text or "{encoder,decoder}.pt" in text
+
+
+def test_hcvae_release_recipe_uses_one_gpu():
+    readme = (ROOT / "training/README.md").read_text(encoding="utf-8")
+    hcvae_section = readme.split("# Shape and PBR HC-VAEs", 1)[1]
+    assert hcvae_section.count(
+        "CUDA_VISIBLE_DEVICES=0 python -m training.hcvae.train"
+    ) == 2
+    assert "torchrun" not in hcvae_section
+
+    launcher = (ROOT / "training/hcvae/train.py").read_text(encoding="utf-8")
+    assert "distributed execution is not required" in launcher
+    assert "nproc_per_node" not in launcher

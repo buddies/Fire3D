@@ -184,6 +184,8 @@ the sparse-structure/shape/PBR flow cascade, and the shape/PBR HC-VAEs. Public
 configs retain the architectures, objectives, augmentations, and latent
 contracts used for the released models while replacing cluster paths with
 explicit environment roots. See [training/README.md](training/README.md).
+The released HC-VAE recipe uses one process on one GPU; its configured
+per-GPU batch size is therefore the effective global batch size.
 
 Perception evaluation and the iTHOR/Imaginarium reconstruction benchmarks are
 under `eval/perception/` and `benchmarks/scene_reconstruction/`. A compact,

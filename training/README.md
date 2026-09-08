@@ -40,12 +40,16 @@ accelerate launch --num_processes 8 -m training.flow_matching.train_pbr \
   --config configs/training/flow_matching/pbr.yaml \
   --output_dir outputs/flow --exp_name pbr
 
-# Shape and PBR HC-VAEs
-torchrun --standalone --nproc_per_node=8 -m training.hcvae.train \
+# Shape and PBR HC-VAEs (one GPU each)
+CUDA_VISIBLE_DEVICES=0 python -m training.hcvae.train \
   --config configs/training/hcvae/shape.yaml
-torchrun --standalone --nproc_per_node=8 -m training.hcvae.train \
+CUDA_VISIBLE_DEVICES=0 python -m training.hcvae.train \
   --config configs/training/hcvae/pbr.yaml
 ```
+
+The released HC-VAE recipes are trained with one process on one GPU. The
+`batch_size_per_gpu` values in their configs are therefore also the effective
+global batch sizes.
 
 Perception preserves the released point-normalized `[0,24]` position-token
 contract, local-up 90-degree yaw invariance in Hungarian matching and rotation
