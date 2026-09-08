@@ -47,6 +47,28 @@ The table means the implementation is included. It does not mean source data,
 source licenses, proprietary render runtimes, or third-party checkpoints are
 redistributed by Fire3D.
 
+## Source Downloads
+
+Fire3D does not redistribute its training corpora. Download each source from
+its official project and review its current license and access requirements
+before processing it.
+
+| Training source | Official project or download |
+|---|---|
+| SAGE-10K | [Hugging Face dataset](https://huggingface.co/datasets/nvidia/SAGE-10k) |
+| InternScenes | [Repository and data guide](https://github.com/InternRobotics/InternScenes) |
+| MansionWorld | [Hugging Face dataset](https://huggingface.co/datasets/superbigsaw/MansionWorld) |
+| iTHOR | [AI2-THOR iTHOR documentation](https://ai2thor.allenai.org/ithor/documentation/) |
+| ProcTHOR | [ProcTHOR-10K dataset](https://github.com/allenai/procthor-10k) |
+| SceneSmith | [Repository and data setup](https://github.com/nepfaff/scenesmith) |
+| Imaginarium | [Hugging Face dataset](https://huggingface.co/datasets/HiHiAllen/Imaginarium-Dataset) |
+| Object collections | [TRELLIS-500K](https://huggingface.co/datasets/JeffreyXiang/TRELLIS-500K) and its [preparation guide](https://github.com/microsoft/TRELLIS/blob/main/DATASET.md) |
+
+TRELLIS-500K is the canonical starting point for the object path. Its metadata
+and preparation tools cover the ObjaverseXL GitHub and Sketchfab subsets, ABO,
+3D-FUTURE, and HSSD represented by the released adapters. Fire3D supplies the
+subsequent normalization, rendering, O-Voxel, and latent-encoding stages.
+
 ## Paths
 
 Shared stages use these roots:

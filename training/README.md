@@ -3,7 +3,12 @@
 The public recipes expose the model and data contracts used for Fire3D's
 perception model, three cascaded flow-matching models, and shape/PBR HC-VAEs.
 The release includes training logic and data-processing reference code, but it
-does not redistribute the full training datasets.
+does not redistribute the training corpora. All source datasets are publicly
+available and retain their original licenses and access terms. See the
+[source-download table](../data_processing/README.md#source-downloads). For
+object training data, start from
+[TRELLIS-500K](https://huggingface.co/datasets/JeffreyXiang/TRELLIS-500K)
+rather than downloading each constituent object collection independently.
 
 ## Paths
 

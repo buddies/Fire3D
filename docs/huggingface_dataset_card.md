@@ -27,6 +27,13 @@ Fire3D release whitelists. Model files are hosted at
 [hongchi/Fire3D](https://huggingface.co/hongchi/Fire3D), and code is maintained
 at [xiahongchi/Fire3D](https://github.com/xiahongchi/Fire3D).
 
+This repository is not a training-data release. Fire3D does not redistribute
+its training corpora; all training sources remain available from their public
+projects under their original terms. For object training data, use
+[TRELLIS-500K](https://huggingface.co/datasets/JeffreyXiang/TRELLIS-500K).
+Official scene-data links and Fire3D preprocessing entry points are listed in
+the [code release](https://github.com/xiahongchi/Fire3D/tree/main/data_processing).
+
 ## Overview
 
 ![Fire3D reconstructs compositional, simulation-ready 3D scenes from RGB-D observations.](assets/teaser.png)

@@ -150,3 +150,34 @@ def test_hcvae_release_recipe_uses_one_gpu():
     launcher = (ROOT / "training/hcvae/train.py").read_text(encoding="utf-8")
     assert "distributed execution is not required" in launcher
     assert "nproc_per_node" not in launcher
+
+
+def test_training_data_scope_points_to_public_sources_without_promising_release():
+    documents = (
+        ROOT / "README.md",
+        ROOT / "training/README.md",
+        ROOT / "data_processing/README.md",
+        ROOT / "docs/huggingface_model_card.md",
+        ROOT / "docs/huggingface_dataset_card.md",
+    )
+    for path in documents:
+        text = path.read_text(encoding="utf-8")
+        assert "https://huggingface.co/datasets/JeffreyXiang/TRELLIS-500K" in text
+
+    root_readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "- [ ] Training data release" not in root_readme
+    assert "- [x] Training-data source and preprocessing references" in root_readme
+
+    processing_readme = (ROOT / "data_processing/README.md").read_text(
+        encoding="utf-8"
+    )
+    required_scene_sources = (
+        "nvidia/SAGE-10k",
+        "InternRobotics/InternScenes",
+        "superbigsaw/MansionWorld",
+        "ai2thor.allenai.org/ithor",
+        "allenai/procthor-10k",
+        "nepfaff/scenesmith",
+        "HiHiAllen/Imaginarium-Dataset",
+    )
+    assert all(source in processing_readme for source in required_scene_sources)

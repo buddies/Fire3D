@@ -29,7 +29,7 @@ Imaginarium, ScanNet++, and single-image scenes.
 - [x] Model release
 - [x] Inference data release
 - [x] Training code release
-- [ ] Training data release
+- [x] Training-data source and preprocessing references
 
 ## Installation
 
@@ -196,7 +196,13 @@ The dataset-processing reference covers SAGE-10K, InternScenes, MansionWorld,
 iTHOR, ProcTHOR, SceneSmith, Imaginarium, 3D-FUTURE, ABO, HSSD, and the GitHub
 and Sketchfab subsets of Objaverse. It includes scene rendering, transform
 export, O-Voxel generation, and sparse latent encoding. Upstream source data is
-not redistributed.
+not redistributed. All training sources are publicly available and retain
+their original licenses and access terms. For object training data, use
+[TRELLIS-500K](https://huggingface.co/datasets/JeffreyXiang/TRELLIS-500K),
+which provides the metadata and preparation tools for the ObjaverseXL, ABO,
+3D-FUTURE, and HSSD sources used by the object pipeline. Official scene-data
+links are collected in
+[data_processing/README.md](data_processing/README.md#source-downloads).
 
 Baseline adapters for EFM3D, Boxer, SceneScript, ShapeR, SAM3D Objects,
 TRELLIS.2, SimRecon, HoloScene, and LiteReality use pinned upstream revisions;

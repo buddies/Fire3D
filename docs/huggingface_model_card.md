@@ -92,6 +92,17 @@ reconstruction.
 The released HC-VAE recipe uses one process on one GPU; its configured
 per-GPU batch size is therefore the effective global batch size.
 
+## Training Data
+
+Fire3D does not redistribute its training corpora. All source datasets are
+publicly available and retain their original licenses and access terms. For
+object training data, use
+[TRELLIS-500K](https://huggingface.co/datasets/JeffreyXiang/TRELLIS-500K),
+which provides the metadata and preparation tools for the ObjaverseXL, ABO,
+3D-FUTURE, and HSSD sources used by the object pipeline. Official scene-data
+links and Fire3D preprocessing entry points are listed in the
+[code release](https://github.com/xiahongchi/Fire3D/tree/main/data_processing).
+
 ## Use
 
 ```bash
