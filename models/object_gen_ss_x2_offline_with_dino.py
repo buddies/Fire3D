@@ -54,6 +54,7 @@ def _load_ss_x2_stats(
     channels,
     resolution,
     expected_ss_step=None,
+    expected_ss_artifact_id=None,
     expected_ss_encoder_sha256=None,
 ):
     if path is None:
@@ -73,6 +74,13 @@ def _load_ss_x2_stats(
     if int(stats.get("latent_resolution", resolution)) != resolution:
         raise ValueError(f"SS statistics latent_resolution mismatch at {path}")
     ss_vae = stats.get("ss_vae") or {}
+    if expected_ss_artifact_id is not None:
+        actual_artifact = str(ss_vae.get("artifact_id", ""))
+        if actual_artifact != str(expected_ss_artifact_id):
+            raise ValueError(
+                f"SS statistics artifact mismatch: {actual_artifact!r} != "
+                f"{expected_ss_artifact_id!r}"
+            )
     if expected_ss_step is not None and int(ss_vae.get("step", -1)) != int(expected_ss_step):
         raise ValueError(
             f"SS statistics checkpoint step mismatch: {ss_vae.get('step')} != {expected_ss_step}"
@@ -130,6 +138,7 @@ class ObjectGen(nn.Module):
             ss_config.get("latent_stats_path"),
             channels=self.ss_channels,
             resolution=self.ss_resolution,
+            expected_ss_artifact_id=ss_config.get("artifact_id"),
             expected_ss_step=ss_config.get("step"),
             expected_ss_encoder_sha256=ss_config.get("encoder_sha256"),
         )

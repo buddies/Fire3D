@@ -117,12 +117,17 @@ def test_model_download_verifies_manifest_files(tmp_path, monkeypatch):
     destination = tmp_path / "models"
     payload = b"checkpoint"
     digest = hashlib.sha256(payload).hexdigest()
+    snapshot_calls = []
 
     def fake_snapshot(**kwargs):
+        snapshot_calls.append(kwargs)
         target = Path(kwargs["local_dir"])
         model_path = target / "perception/model.pt"
         model_path.parent.mkdir(parents=True)
         model_path.write_bytes(payload)
+        (target / "config.json").write_text(
+            json.dumps({"schema": "fire3d_model_bundle_v1"})
+        )
         (target / "manifest.json").write_text(
             json.dumps(
                 {
@@ -139,6 +144,44 @@ def test_model_download_verifies_manifest_files(tmp_path, monkeypatch):
 
     monkeypatch.setattr(release_download, "_snapshot_download", fake_snapshot)
     assert release_download.download_models(destination) == destination.resolve()
+    assert len(snapshot_calls) == 1
+    assert snapshot_calls[0]["repo_type"] == "model"
+    assert "allow_patterns" not in snapshot_calls[0]
+
+
+def test_evaluation_download_verifies_and_extracts_archive(tmp_path, monkeypatch):
+    source = tmp_path / "source"
+    archive = source / "evaluation/shaper_gt_v1.tar"
+    archive.parent.mkdir(parents=True)
+    payload = tmp_path / "sample.npz"
+    payload.write_bytes(b"compact-shaper-gt")
+    with tarfile.open(archive, "w") as handle:
+        handle.add(payload, arcname="evaluation/shaper/gt/sample.npz")
+    digest = release_download.sha256_file(archive)
+    manifest = {
+        "schema": "fire3d_inference_data_v1",
+        "datasets": {},
+        "evaluations": {
+            "shaper": {"archives": ["evaluation/shaper_gt_v1.tar"]}
+        },
+        "archives": {
+            "evaluation/shaper_gt_v1.tar": {"sha256": digest}
+        },
+    }
+
+    def fake_snapshot(**kwargs):
+        target = Path(kwargs["local_dir"])
+        target.mkdir(parents=True, exist_ok=True)
+        (target / "manifest.json").write_text(json.dumps(manifest))
+        if "evaluation/shaper_gt_v1.tar" in kwargs["allow_patterns"]:
+            output = target / "evaluation/shaper_gt_v1.tar"
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes(archive.read_bytes())
+
+    monkeypatch.setattr(release_download, "_snapshot_download", fake_snapshot)
+    destination = tmp_path / "data"
+    release_download.download_evaluation_data(destination, ["shaper"])
+    assert (destination / "evaluation/shaper/gt/sample.npz").read_bytes() == payload.read_bytes()
 
 
 def test_download_verifies_and_extracts_archive(tmp_path, monkeypatch):

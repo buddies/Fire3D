@@ -1,1 +1,1 @@
-"""Perception evaluation, inference helpers, and visualization."""
+"""Fire3D perception evaluation entry points."""

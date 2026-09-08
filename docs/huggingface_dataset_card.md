@@ -76,10 +76,17 @@ fire3d download --data --dataset ithor --scene-id iTHOR_FloorPlan312_physics
 fire3d download --data --dataset imaginarium --scene-id bedroom_01
 fire3d download --data --dataset scannetpp --scene-id 09bced689e
 fire3d download --data --dataset single_image --scene-id 003025
+fire3d download --evaluation shaper
 ```
 
 Omit `--scene-id` to download all published scenes for one adapter. Data is
 extracted under `data/{ithor,Imaginarium,scannetpp,single_image}`.
+
+The optional ShapeR evaluation bundle is extracted under
+`data/evaluation/shaper/`. It is a compact, pickle-free derivative containing
+the meshes, bounds, transforms, and condition points required by Fire3D's
+geometry evaluator. It retains the upstream ShapeR evaluation-data terms and
+includes the source license.
 
 ## Processing
 

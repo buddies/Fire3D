@@ -3,6 +3,7 @@ import torch
 import os
 import pickle
 import trimesh
+from pathlib import Path
 from utils.exact_camera_rgb import resolve_frames_dir
 from utils.read_frames import (
     read_rgbs,
@@ -14,7 +15,11 @@ from utils.transforms import point_augment, point_normalize
 from utils.project import project_depth_to_points
 from tqdm import tqdm
 
-data_dir = "/data/hongchix/scenes/Imaginarium/"
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+data_dir = os.environ.get(
+    "FIRE3D_IMAGINARIUM_ROOT",
+    str(_REPO_ROOT / "data" / "imaginarium"),
+)
 num_videos_per_scene = 1
 dataset_name = "Imaginarium"
 

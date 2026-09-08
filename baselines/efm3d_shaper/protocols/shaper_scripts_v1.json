@@ -1,0 +1,32 @@
+{
+  "schema": "ff_efm3d_shaper_inference_protocol_v1",
+  "name": "shaper_scripts_v1",
+  "source": {
+    "repository": "https://github.com/xiahongchi/shaper",
+    "commit": "a0486d47e54c",
+    "scripts": [
+      "scripts/ithor.sh",
+      "scripts/imaginarium.sh"
+    ]
+  },
+  "efm3d": {
+    "frame_rate": 10,
+    "frames_per_snippet": 10,
+    "stride_frames": 5,
+    "num_snips": 9999,
+    "max_points_per_frame": 20000,
+    "point_source": "global-repeat",
+    "det_threshold": 0.2,
+    "tracker_inst_threshold": 0.3,
+    "tracker_assoc_threshold": 0.25,
+    "voxel_res": 0.02,
+    "obb_only": false
+  },
+  "shaper": {
+    "prob_threshold": 0.25,
+    "padding_scale": 1.05,
+    "max_object_points": 1024,
+    "max_frames": 64,
+    "config": "speed"
+  }
+}

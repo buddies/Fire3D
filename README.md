@@ -28,7 +28,7 @@ Imaginarium, ScanNet++, and single-image scenes.
 - [x] Inference code release
 - [x] Model release
 - [x] Inference data release
-- [ ] Training code release
+- [x] Training code release
 - [ ] Training data release
 
 ## Installation
@@ -60,6 +60,7 @@ fire3d download --data --dataset ithor --scene-id iTHOR_FloorPlan312_physics
 fire3d download --data --dataset imaginarium --scene-id bedroom_01
 fire3d download --data --dataset scannetpp --scene-id 09bced689e
 fire3d download --data --dataset single_image --scene-id 003025
+fire3d download --evaluation shaper
 ```
 
 Omit `--scene-id` to download every whitelisted scene in a selected dataset.
@@ -148,8 +149,8 @@ filenames intentionally do not encode private training iteration numbers.
 | Shape flow | `reconstruction/flows/shape/model.pt` | HC-VAE shape-latent generation |
 | PBR flow | `reconstruction/flows/pbr/model.pt` | HC-VAE material-latent generation |
 | Sparse-structure VAE | `reconstruction/vae/ss/ckpts/decoder.pt` | Sparse occupancy decoding |
-| Shape HC-VAE | `reconstruction/vae/shape/ckpts/decoder.pt` | Compact-to-SC-VAE shape decoding |
-| PBR HC-VAE | `reconstruction/vae/pbr/ckpts/decoder.pt` | Compact-to-SC-VAE material decoding |
+| Shape HC-VAE | `reconstruction/vae/shape/ckpts/{encoder,decoder}.pt` | Shape-field compression and decoding |
+| PBR HC-VAE | `reconstruction/vae/pbr/ckpts/{encoder,decoder}.pt` | Material-field compression and decoding |
 | DINOv3 encoder | `external/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth` | Image feature extraction |
 | TRELLIS.2 shape decoder | `external/trellis2/shape_dec_next_dc_f16c32_fp16.safetensors` | SC-VAE shape-field decoding |
 | TRELLIS.2 PBR decoder | `external/trellis2/tex_dec_next_dc_f16c32_fp16.safetensors` | SC-VAE material-field decoding |
@@ -158,8 +159,13 @@ filenames intentionally do not encode private training iteration numbers.
 
 ```text
 configs/inference/       frozen public inference protocols
+configs/training/        released perception, flow, and HC-VAE recipes
 fire3d/                  stable command-line and runtime interface
 eval/                    perception, reconstruction, and rendering runtime
+training/                model training and validation entry points
+benchmarks/              frozen geometry and appearance evaluations
+baselines/               pinned external-method adapters and contracts
+data_processing/         scene/object preprocessing reference pipelines
 models/ modules/         Fire3D neural network definitions
 utils/                    dataset adapters and geometric utilities
 trellis2_x2/             required TRELLIS.2, O-Voxel, and CuMesh runtime
@@ -170,6 +176,30 @@ tests/                   release and protocol validation gates
 
 See [docs/release_validation.md](docs/release_validation.md) for the validation
 scene matrix and the required release gates.
+
+## Training And Evaluation
+
+The release includes the full model-side training paths for scene perception,
+the sparse-structure/shape/PBR flow cascade, and the shape/PBR HC-VAEs. Public
+configs retain the architectures, objectives, augmentations, and latent
+contracts used for the released models while replacing cluster paths with
+explicit environment roots. See [training/README.md](training/README.md).
+
+Perception evaluation and the iTHOR/Imaginarium reconstruction benchmarks are
+under `eval/perception/` and `benchmarks/scene_reconstruction/`. A compact,
+pickle-free ShapeR GT bundle can be installed with
+`fire3d download --evaluation shaper`.
+
+The dataset-processing reference covers SAGE-10K, InternScenes, MansionWorld,
+iTHOR, ProcTHOR, SceneSmith, Imaginarium, 3D-FUTURE, ABO, HSSD, and the GitHub
+and Sketchfab subsets of Objaverse. It includes scene rendering, transform
+export, O-Voxel generation, and sparse latent encoding. Upstream source data is
+not redistributed.
+
+Baseline adapters for EFM3D, Boxer, SceneScript, ShapeR, SAM3D Objects,
+TRELLIS.2, SimRecon, HoloScene, and LiteReality use pinned upstream revisions;
+their repositories and checkpoints remain separate. See
+[baselines/README.md](baselines/README.md).
 
 ## Results Preview
 

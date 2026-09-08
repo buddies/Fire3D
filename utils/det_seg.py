@@ -1,4 +1,6 @@
 """Shared detection post-processing: pose decoding, box corners, NMS."""
+from pathlib import Path
+
 import numpy as np
 import torch
 import trimesh
@@ -923,9 +925,23 @@ def visualize_valid_logits(
 
 def get_dino_model(model_path=None, repo_dir=None):
     if model_path is None:
-        model_path = '/data/hongchix/codes/dino/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth'
+        model_path = os.environ.get(
+            "FIRE3D_DINOV3_WEIGHTS",
+            str(
+                Path(__file__).resolve().parents[1]
+                / "checkpoints"
+                / "Fire3D"
+                / "external"
+                / "dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth"
+            ),
+        )
     if repo_dir is None:
-        repo_dir = '/data/hongchix/codes/dino/dinov3'
+        repo_dir = os.environ.get("FIRE3D_DINOV3_REPO")
+    if not repo_dir:
+        raise ValueError(
+            "DINOv3 source checkout is required; pass repo_dir or set "
+            "FIRE3D_DINOV3_REPO."
+        )
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = torch.hub.load(repo_dir, 'dinov3_vitl16', source='local', weights=model_path)
     model.to(device)

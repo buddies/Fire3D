@@ -45,6 +45,24 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+training = [
+  "accelerate>=1.10,<2",
+  "numba>=0.61,<1",
+  "pandas>=2.2,<3",
+  "tensorboard>=2.19,<3",
+  "wandb>=0.21,<1",
+]
+evaluation = [
+  "lpips>=0.1.4,<1",
+  "matplotlib>=3.10,<4",
+  "pandas>=2.2,<3",
+  "scikit-learn>=1.6,<2",
+]
+preprocessing = [
+  "networkx>=3.4,<4",
+  "pyrender>=0.1.45,<1",
+  "shapely>=2.1,<3",
+]
 dev = [
   "pytest>=8,<9",
   "ruff>=0.12,<1",
@@ -54,7 +72,26 @@ dev = [
 fire3d = "fire3d.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["fire3d*"]
+namespaces = false
+include = [
+  "baselines*",
+  "benchmarks*",
+  "data_processing*",
+  "eval*",
+  "fire3d*",
+  "models*",
+  "modules*",
+  "training*",
+  "utils*",
+]
+exclude = [
+  "baselines._upstream*",
+  "data_processing._upstream*",
+]
+
+[tool.setuptools.package-data]
+"baselines.shaper" = ["LICENSE"]
+"baselines.boxer_trellis2" = ["LICENSE"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -69,6 +106,8 @@ extend-exclude = [
   "checkpoints",
   "data",
   "results",
+  "baselines/_upstream",
+  "data_processing/_upstream",
   "third_party/dinov3",
   "trellis2_x2/CuMesh/third_party",
   "trellis2_x2/o-voxel/third_party",

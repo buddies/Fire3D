@@ -9,7 +9,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from fire3d.download import DATASET_SUBDIRS, download_data, download_models
+from fire3d.download import (
+    DATASET_SUBDIRS,
+    EVALUATION_DATASETS,
+    download_data,
+    download_evaluation_data,
+    download_models,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EXAMPLES_PATH = REPO_ROOT / "configs/examples.json"
@@ -191,6 +197,13 @@ def build_parser() -> argparse.ArgumentParser:
     download.add_argument("--models", action="store_true")
     download.add_argument("--data", action="store_true")
     download.add_argument(
+        "--evaluation",
+        action="append",
+        choices=EVALUATION_DATASETS,
+        default=[],
+        help="Download a published evaluation GT bundle.",
+    )
+    download.add_argument(
         "--dataset",
         action="append",
         choices=sorted(DATASET_SUBDIRS),
@@ -251,7 +264,7 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     if args.command == "download":
-        download_both = not args.models and not args.data
+        download_both = not args.models and not args.data and not args.evaluation
         if args.models or download_both:
             print(f"[fire3d] downloading models to {args.model_root}", flush=True)
             download_models(args.model_root, revision=args.model_revision)
@@ -265,6 +278,17 @@ def main() -> None:
                 args.data_root,
                 selected,
                 scene_ids=args.scene_id,
+                revision=args.data_revision,
+                keep_archives=args.keep_archives,
+            )
+        if args.evaluation:
+            print(
+                f"[fire3d] downloading {', '.join(args.evaluation)} evaluation data",
+                flush=True,
+            )
+            download_evaluation_data(
+                args.data_root,
+                args.evaluation,
                 revision=args.data_revision,
                 keep_archives=args.keep_archives,
             )

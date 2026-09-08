@@ -1,0 +1,1 @@
+"""SceneScript output adapter."""

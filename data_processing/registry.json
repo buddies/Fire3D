@@ -1,0 +1,75 @@
+{
+  "schema": "fire3d.data_processing_registry.v1",
+  "upstream_sources": {
+    "scenesmith": {
+      "repository": "https://github.com/nepfaff/scenesmith.git",
+      "revision": "67cc408fd38334b4a926efef45e284302ed5055b",
+      "checkout": "data_processing/_upstream/scenesmith"
+    }
+  },
+  "scene_datasets": {
+    "sage10k": {
+      "render": "data_processing/datasets/sage10k/render_video_w_bg_v3.py",
+      "export": "data_processing/datasets/sage10k/export_glb.py",
+      "transforms": "data_processing/stages/transforms/get_transforms_sage_10k.py",
+      "ovoxel_objects": "data_processing/stages/ovoxel/voxelize_sage10k_objects.py",
+      "ovoxel_background": "data_processing/stages/ovoxel/voxelize_sage10k_scene_bg.py"
+    },
+    "internscenes": {
+      "render": "data_processing/datasets/internscenes/render_scenes.py",
+      "export": "data_processing/datasets/internscenes/compose_scenes.py",
+      "transforms": "data_processing/stages/transforms/get_transforms_internscenes.py",
+      "ovoxel_objects": "data_processing/stages/ovoxel/voxelize_internscenes_objects.py",
+      "ovoxel_background": "data_processing/stages/ovoxel/voxelize_internscenes_scene_bg.py"
+    },
+    "mansionworld": {
+      "render": "data_processing/datasets/mansionworld/render.py",
+      "export": "data_processing/datasets/mansionworld/export.py",
+      "transforms": "data_processing/datasets/mansionworld/get_transforms.py",
+      "ovoxel_objects": "data_processing/stages/ovoxel/voxelize_mansionworld_objects.py",
+      "ovoxel_background": "data_processing/stages/ovoxel/voxelize_mansionworld_scene_bg.py"
+    },
+    "ithor": {
+      "render": "data_processing/datasets/ai2thor/ithor/render.py",
+      "export": "data_processing/datasets/ai2thor/ithor/export_scene_final.py",
+      "transforms": "data_processing/datasets/ai2thor/ithor/export_single_scene.py"
+    },
+    "procthor": {
+      "render": "data_processing/datasets/ai2thor/procthor/render.py",
+      "export": "data_processing/datasets/ai2thor/procthor/export.py",
+      "transforms": "data_processing/stages/transforms/get_transforms_procthor.py",
+      "ovoxel_objects": "data_processing/stages/ovoxel/voxelize_procthor_objects.py",
+      "ovoxel_background": "data_processing/stages/ovoxel/voxelize_procthor_scene_bg.py"
+    },
+    "scenesmith": {
+      "render": "data_processing/datasets/scenesmith/render.py",
+      "export": "data_processing/datasets/scenesmith/export_all.py",
+      "transforms": "data_processing/stages/transforms/get_transforms_scenesmith.py",
+      "ovoxel_objects": "data_processing/stages/ovoxel/voxelize_scenesmith_objects.py",
+      "ovoxel_background": "data_processing/stages/ovoxel/voxelize_scenesmith_scene_bg.py"
+    },
+    "imaginarium": {
+      "render": "data_processing/datasets/imaginarium/render.py",
+      "export": "data_processing/datasets/imaginarium/export_scene_transformed.py",
+      "transforms": "data_processing/datasets/imaginarium/decompose_scene_glb.py"
+    }
+  },
+  "object_datasets": {
+    "3d_future": "data_processing/objects/3d_future/adapter.py",
+    "abo": "data_processing/objects/abo/adapter.py",
+    "hssd": "data_processing/objects/hssd/adapter.py",
+    "objaverse_github": "data_processing/objects/objaverse_github/adapter.py",
+    "objaverse_sketchfab": "data_processing/objects/objaverse_sketchfab/adapter.py"
+  },
+  "shared_stages": {
+    "object_render": "data_processing/stages/render/render_object.py",
+    "point_cloud": "data_processing/stages/render/generate_pcd.py",
+    "ovoxel_manifest": "data_processing/stages/ovoxel/build_training_scene_ovoxel_manifests.py",
+    "sparse_structure_encode": "data_processing/stages/latents/ss_enc_seq.py",
+    "shape_encode": "data_processing/stages/latents/shape_enc_seq.py",
+    "shape_rotation_encode": "data_processing/stages/latents/shape_enc_rot_aug_seq.py",
+    "pbr_encode": "data_processing/stages/latents/pbr_enc_seq.py",
+    "pbr_rotation_encode": "data_processing/stages/latents/pbr_enc_rot_aug_seq.py",
+    "ovoxel_encode": "data_processing/stages/latents/ovoxel_seq.py"
+  }
+}

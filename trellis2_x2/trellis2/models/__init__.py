@@ -2,6 +2,7 @@ import importlib
 
 __attributes = {
     'SparseStructureDecoder': 'sparse_structure_vae',
+    'SparseUnetVaeEncoder': 'sc_vaes.sparse_unet_vae',
     'SparseUnetVaeDecoder': 'sc_vaes.sparse_unet_vae',
     'FlexiDualGridVaeDecoder': 'sc_vaes.fdg_vae',
 }
@@ -60,5 +61,5 @@ def from_pretrained(path: str, **kwargs):
 # For Pylance
 if __name__ == '__main__':
     from .sparse_structure_vae import SparseStructureDecoder
-    from .sc_vaes.sparse_unet_vae import SparseUnetVaeDecoder
+    from .sc_vaes.sparse_unet_vae import SparseUnetVaeDecoder, SparseUnetVaeEncoder
     from .sc_vaes.fdg_vae import FlexiDualGridVaeDecoder

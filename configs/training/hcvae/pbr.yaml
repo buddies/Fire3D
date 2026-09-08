@@ -1,0 +1,96 @@
+# PBR VAE X2 Scaled LC64 Configuration
+# LC64 bottleneck from the shape VAE X2 recipe, with the dataset, decoder
+# behavior, loss, and training schedule from the proven LC512 PBR VAE X2 run.
+
+models:
+  encoder:
+    name: SparseUnetVaeEncoder
+    args:
+      in_channels: 32
+      model_channels: [160, 640, 1280]
+      latent_channels: 64
+      num_blocks: [4, 6, 8]
+      block_type:
+        - SparseConvNeXtBlock3d
+        - SparseConvNeXtBlock3d
+        - SparseConvNeXtBlock3d
+      down_block_type:
+        - SparseResBlockS2C3d
+        - SparseResBlockS2C3d
+      block_args:
+        - use_checkpoint: false
+        - use_checkpoint: false
+        - use_checkpoint: false
+      use_fp16: true
+  decoder:
+    name: SparseUnetVaeDecoder
+    args:
+      out_channels: 32
+      model_channels: [1280, 640, 160]
+      latent_channels: 64
+      num_blocks: [8, 6, 4]
+      block_type:
+        - SparseConvNeXtBlock3d
+        - SparseConvNeXtBlock3d
+        - SparseConvNeXtBlock3d
+      up_block_type:
+        - SparseResBlockC2S3d
+        - SparseResBlockC2S3d
+      block_args:
+        - use_checkpoint: false
+        - use_checkpoint: false
+        - use_checkpoint: false
+      use_fp16: true
+      # PBR coordinates are fixed by the encoded target; unlike shape VAE X2,
+      # the PBR decoder does not predict subdivision/occupancy.
+      pred_subdiv: false
+
+dataset:
+  name: SLatPbrOnly
+  args:
+    roots: ${FIRE3D_HCVAE_ROOTS}
+    resolution: 32
+    min_aesthetic_score: 0.0
+    max_tokens: 32768
+    full_pbr: false
+    latent_key: trellis2_pbr_encoding
+    # Keep the LC512 PBR input normalization: LC64 changes the compressed VAE
+    # bottleneck, not the 32-channel TRELLIS2 PBR features being reconstructed.
+    pbr_slat_normalization:
+      mean: [3.501659, 2.212398, 2.226094, 0.251093, -0.026248, -0.687364, 0.439898, -0.928075,
+              0.029398, -0.339596, -0.869527, 1.038479, -0.972385, 0.126042, -1.129303, 0.455149,
+              -1.209521, 2.069067, 0.544735, 2.569128, -0.323407, 2.293000, -1.925608, -1.217717,
+              1.213905, 0.971588, -0.023631, 0.106750, 2.021786, 0.250524, -0.662387, -0.768862]
+      std: [2.665652, 2.743913, 2.765121, 2.595319, 3.037293, 2.291316, 2.144656, 2.911822,
+              2.969419, 2.501689, 2.154811, 3.163343, 2.621215, 2.381943, 3.186697, 3.021588,
+              2.295916, 3.234985, 3.233086, 2.260140, 2.874801, 2.810596, 3.292720, 2.674999,
+              2.680878, 2.372054, 2.451546, 2.353556, 2.995195, 2.379849, 2.786195, 2.775190]
+
+trainer:
+  name: PbrVaeX2Trainer
+  args:
+    output_dir: outputs/pbr_vae_x2_lc64
+    load_dir: null
+    step: null
+    batch_size_per_gpu: 192
+    batch_split: 1
+    max_steps: 1000000
+    optimizer:
+      name: AdamW
+      args:
+        lr: 8.0e-5
+        weight_decay: 0.01
+        betas: [0.9, 0.99]
+    lr_scheduler: null
+    grad_clip: 1.0
+    ema_rate: 0.9999
+    mix_precision_mode: 'inflat_all'
+    mix_precision_dtype: 'float16'
+    loss_type: l1
+    lambda_kl: 2.0e-6
+    lambda_subdiv: 0.0
+    i_print: 10
+    i_log: 100
+    i_sample: 999999999
+    i_save: 10000
+    i_ddpcheck: null

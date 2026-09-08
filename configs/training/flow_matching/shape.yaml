@@ -1,0 +1,152 @@
+# Offline Shape VAE X2 flow matching with scene/object conditioning.
+project_name: Fire3D
+
+data:
+  data_dir_info:
+    scene_data:
+      SAGE-10k:
+        data_dir: ${FIRE3D_TRAINING_ROOT}/SAGE-10k
+        shape_trellis2_latents_dir: ${FIRE3D_TRAINING_ROOT}/SAGE-10k/shape_hcvae_latents_rotated
+        use_weight: 1
+        num_videos_per_scene: 3
+      InternScenes:
+        data_dir: ${FIRE3D_TRAINING_ROOT}/InternScenes
+        shape_trellis2_latents_dir: ${FIRE3D_TRAINING_ROOT}/InternScenes/shape_hcvae_latents_rotated
+        use_weight: 1
+        num_videos_per_scene: 3
+      ProcTHOR:
+        data_dir: ${FIRE3D_TRAINING_ROOT}/ProcTHOR
+        shape_trellis2_latents_dir: ${FIRE3D_TRAINING_ROOT}/ProcTHOR/shape_hcvae_latents_rotated
+        use_weight: 1
+        num_videos_per_scene: 1
+      MansionWorld:
+        data_dir: ${FIRE3D_TRAINING_ROOT}/MansionWorld
+        shape_trellis2_latents_dir: ${FIRE3D_TRAINING_ROOT}/MansionWorld/shape_hcvae_latents_rotated
+        use_weight: 1
+        num_videos_per_scene: 2
+      SceneSmith:
+        data_dir: ${FIRE3D_TRAINING_ROOT}/Scenesmith
+        shape_trellis2_latents_dir: ${FIRE3D_TRAINING_ROOT}/Scenesmith/shape_hcvae_latents_rotated
+        use_weight: 1
+        num_videos_per_scene: 3
+    object_data:
+      data_dir: ${FIRE3D_OBJECT_ROOT}
+      render_dir: ${FIRE3D_OBJECT_ROOT}/render
+      shape_x2_latents_dir: ${FIRE3D_OBJECT_ROOT}/shape_hcvae_latents
+      shape_x2_latent_key: trellis2_shape_x2_encoding
+      sources: [3D-FUTURE, ABO, HSSD, ObjaverseXL_github, ObjaverseXL_sketchfab]
+
+  train_split_ratio: 0.95
+  batch_size: 1
+  num_workers: 4
+  train_val_split: true
+  scene_data_weight: 1
+  object_data_weight: 3
+  num_object_data_per_sample: 64
+  object_data_grid_cols: 8
+  object_data_spacing: 1.2
+  object_data_scale_min: 0.8
+  object_data_scale_max: 1.2
+  object_shape_trellis2_rotation: ['000', '090', '180', '270']
+  scene_shape_trellis2_rotation: ['000', '090', '180', '270']
+  preload: false
+  augment: false
+  train_num_max_objects: 48
+  shape_x2_channels: 64
+  dino_upsample: 4
+  num_max_scenes: null
+  frame_subsample: false
+  depth_noise_std: 0.0
+  camera_translation_noise_std: 0.0
+  camera_rotation_noise_std: 0.0
+  sample_full_frame_prob: 1.0
+  perception_translation_noise_std: 0.0
+  perception_rotation_noise_std: 0.0
+  perception_scale_noise_std: 0.0
+  perception_instance_id_recall: 1.0
+  perception_instance_id_recall_background_prob: 0.0
+  perception_instance_id_recall_scale_ratio_thresh: 0.5
+  perception_instance_id_corruption_prob: 0.0
+  perception_instance_id_corruption_background_prob: 0.0
+  perception_instance_id_corruption_near_radius: 1.0
+  split_manifest_dir: ${FIRE3D_MANIFEST_ROOT}
+  split_manifest_prefix: obj_gen_feat_with_objects
+  use_split_manifests: true
+  strict_split_manifests: true
+
+model:
+  resolution: 1024
+  max_cond_len: 512
+
+  shape_x2:
+    ckpt_root: ${FIRE3D_MODEL_ROOT}/reconstruction/vae/shape
+    step: null
+    use_ema: true
+    x2_latent_stats_path: ${FIRE3D_MODEL_ROOT}/reconstruction/stats/shape.json
+    normalize_target: true
+
+  dino:
+    model_path: ${FIRE3D_MODEL_ROOT}/external/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth
+    repo_dir: ${FIRE3D_DINOV3_ROOT}
+    model_name: dinov3_vitl16
+    downsample: 16
+    upsample: 4
+    anyup_model: anyup_multi_backbone
+    anyup_repo: wimmerth/anyup
+    anyup_source: github
+    anyup_use_natten: true
+    anyup_q_chunk_size: null
+    anyup_tile_grid: 0
+    anyup_frame_batch_size: 32
+
+  context_encoder:
+    type: fourier_add
+    channels: 1024
+    fourier_sample_rate: 60
+
+  flow_model_shape_x2:
+    resolution: 8
+    in_channels: 64
+    model_channels: 1536
+    cond_channels: 1024
+    out_channels: 64
+    num_blocks: 30
+    mlp_ratio: 5.3334
+    num_heads: 12
+    pe_mode: rope
+    share_mod: true
+    initialization: scaled
+    qk_rms_norm: true
+    qk_rms_norm_cross: true
+    dtype: bfloat16
+
+  flow_trainer_shape_x2:
+    p_uncond: 0.1
+
+training:
+  max_steps: 1000000
+  lr: 1.0e-4
+  weight_decay: 0.01
+  betas: [0.9, 0.95]
+  eps: 1.0e-8
+  mixed_precision: bf16
+  gradient_clip: 1.0
+  gradient_clip_percentile: 95.0
+  gradient_accumulation_steps: 1
+  use_ema: true
+  ema_rate: 0.9999
+  save_every_n_steps: 5000
+  checkpoint_dir: null
+  log_every_n_steps: 25
+  inference_every_n_steps: 5000
+  val_every_n_steps: 0
+  enable_validation: false
+  val_dir: null
+  val_num: 20
+  trainval_dir: null
+  trainval_num: 5
+  checkpoint_to_cpu: true
+  checkpoint_synchronize_cuda: false
+  checkpoint_barrier: false
+  debug_cuda_sync_every_n_steps: 0
+  debug_log_batch_every_n_steps: 0

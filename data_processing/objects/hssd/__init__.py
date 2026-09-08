@@ -1,0 +1,1 @@
+"""HSSD object adapter."""

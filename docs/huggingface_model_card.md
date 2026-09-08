@@ -1,6 +1,5 @@
 ---
 license: other
-library_name: pytorch
 pipeline_tag: image-to-3d
 tags:
   - 3d-scene-reconstruction
@@ -70,14 +69,20 @@ frozen TRELLIS.2 SC-VAE decoding path.
 | Shape flow | `reconstruction/flows/shape/model.pt` |
 | PBR flow | `reconstruction/flows/pbr/model.pt` |
 | Sparse-structure VAE | `reconstruction/vae/ss/ckpts/decoder.pt` |
-| Shape HC-VAE | `reconstruction/vae/shape/ckpts/decoder.pt` |
-| PBR HC-VAE | `reconstruction/vae/pbr/ckpts/decoder.pt` |
+| Shape HC-VAE | `reconstruction/vae/shape/ckpts/encoder.pt`, `decoder.pt` |
+| PBR HC-VAE | `reconstruction/vae/pbr/ckpts/encoder.pt`, `decoder.pt` |
 | DINOv3 encoder | `external/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth` |
 | TRELLIS.2 shape decoder | `external/trellis2/shape_dec_next_dc_f16c32_fp16.safetensors` |
 | TRELLIS.2 PBR decoder | `external/trellis2/tex_dec_next_dc_f16c32_fp16.safetensors` |
 
 Public filenames intentionally do not encode private training iteration
 numbers.
+
+The root `config.json` is the model repository's Hugging Face query file. A
+normal `snapshot_download` includes it in the model snapshot, allowing the Hub
+to maintain the standard repository download count without client-side
+telemetry. See the [Hugging Face download-statistics
+documentation](https://huggingface.co/docs/hub/models-download-stats).
 
 The default protocols use classifier-free guidance 3, flow and VAE batches of
 16, and the batch CuMesh postprocessor. The iTHOR, Imaginarium, and ScanNet++

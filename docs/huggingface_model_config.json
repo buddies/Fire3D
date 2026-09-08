@@ -1,0 +1,8 @@
+{
+  "architectures": [
+    "Fire3DSceneReconstructionPipeline"
+  ],
+  "code_repository": "https://github.com/xiahongchi/Fire3D",
+  "model_type": "fire3d",
+  "schema": "fire3d_model_bundle_v1"
+}

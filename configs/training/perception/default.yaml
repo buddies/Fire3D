@@ -1,0 +1,191 @@
+# Det/seg model-only fine-tuning from the preserved percept420k checkpoint.
+# Legacy point_normalize() + [0,24] pose-token contract.
+# Background remains target instance 0 with pose, validity, and segmentation.
+# Augmentation keeps the quarter-yaw sensor-noise B1 + instance-yaw + instops
+# recipe, then adds train-bank external object paste.
+
+project_name: Fire3D
+
+rotation_symmetry:
+  local_up_quarter_turns: true
+
+data:
+  data_dir_info:
+    REAL-SAGE-10k:
+      data_dir: ${FIRE3D_TRAINING_ROOT}/SAGE-10k/
+      use_weight: 1
+      num_videos_per_scene: 1
+    REAL-InternScenes:
+      data_dir: ${FIRE3D_TRAINING_ROOT}/InternScenes/
+      use_weight: 1
+      num_videos_per_scene: 1
+    REAL-ProcTHOR:
+      data_dir: ${FIRE3D_TRAINING_ROOT}/ProcTHOR/
+      use_weight: 1
+      num_videos_per_scene: 1
+    REAL-MansionWorld:
+      data_dir: ${FIRE3D_TRAINING_ROOT}/MansionWorld/
+      use_weight: 1
+      num_videos_per_scene: 1
+    REAL-SceneSmith:
+      data_dir: ${FIRE3D_TRAINING_ROOT}/Scenesmith/
+      use_weight: 1
+      num_videos_per_scene: 1
+    Structure3D:
+      enabled: false
+      data_dir: ${FIRE3D_TRAINING_ROOT}/structure3d/
+      use_weight: 1
+      num_videos_per_scene: 1
+      require_prune_masks: true
+      split_manifest_prefix: structure3d
+
+  train_split_ratio: 0.95
+  batch_size: 1
+  num_workers: 8
+  val_num_workers: 2
+  train_val_split: true
+  preload: false
+  augment: true
+  num_max_scenes: null
+  split_manifest_dir: ${FIRE3D_MANIFEST_ROOT}
+  split_manifest_prefix: obj_gen_feat_with_objects
+  use_split_manifests: true
+  strict_split_manifests: true
+
+  scene_yaw_augmentation:
+    enabled: true
+    sampling: discrete
+    yaw_degrees: [0.0, 90.0, 180.0, 270.0]
+
+  frame_subsample: true
+  depth_noise_std: 0.03
+  camera_translation_noise_std: 0.03
+  camera_rotation_noise_std: 0.0087
+  sample_full_frame_prob: 0.1
+  all_augmentation_probability: 1.0
+  augmentation_schedule:
+    clean_steps: 0
+    full_intensity_step: 0
+    curve: linear
+
+  instance_augment:
+    enabled: true
+    start_step: 0
+    probability: 1.0
+    object_ratio: 1.0
+    operation_probs:
+      partial_delete: 0.10
+      full_delete: 0.05
+      rotate: 0.50
+      transform: 0.25
+      copy_paste: 0.10
+    yaw_degrees: [-180.0, 180.0]
+    partial_delete_ratio: [0.2, 0.5]
+    min_source_points: 128
+    min_remaining_points: 64
+    copy_paste:
+      copies_per_object_min: 1
+      copies_per_object_max: 5
+      copies_per_object_probs: [0.20, 0.20, 0.20, 0.20, 0.20]
+    transform:
+      translation_candidates: 16
+      yaw_candidates_per_translation: 8
+      scale_range: [0.85, 1.15]
+      min_translation_xy_size_ratio: 0.5
+      room_grid_size: 0.05
+      room_gap_close: 0.20
+      room_boundary_margin: 0.05
+      collision_voxel_size: 0.05
+      max_collision_ratio: 0.01
+      max_copies_per_scene: 8
+    external_object_paste:
+      enabled: true
+      objects_per_scene: 8
+      attempts_per_object: 8
+      render_root: ${FIRE3D_OBJECT_ROOT}/render
+      train_manifest: ${FIRE3D_MANIFEST_ROOT}/obj_gen_feat_with_objects_object_train.json
+      scale_strategy: volume_match
+      volume_extent_quantiles: [0.02, 0.98]
+      volume_scale_clamp_ratio: [0.5, 2.0]
+      scene_scale_jitter: [0.8, 1.2]
+
+model:
+  resolution: 256
+  dino:
+    model_path: ${FIRE3D_MODEL_ROOT}/external/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth
+    repo_dir: ${FIRE3D_DINOV3_ROOT}
+
+  point_unet:
+    input_channels: 1024
+    d_model: 1024
+    conv_layers: [1024, 1024]
+    max_len_input: 30000
+    max_len_output: 30000
+    sample_rate: 60
+
+  scene_decoder:
+    d_model: 1024
+    num_attn_heads: 16
+    dim_feedforward: 4096
+    num_encoder_layers: 6
+    num_seg_encoder_layers: 6
+    seg_pos_input_first: false
+    seg_feat_with_spatial: true
+    seg_feat_use_pose_transformer: false
+    num_decoder_layers: 6
+    dropout: 0.1
+    num_bins: 1024
+    seg_feat_dim: 1024
+    dtype: float32
+    logit_scale: null
+    cost_weights:
+      cls: 0.1
+      pos: 10.0
+      scl: 10.0
+      rot: 1.0
+      seg_dice: 0.0
+      seg_focal: 0.0
+
+loss:
+  lambda_translation: 1.0
+  lambda_scale: 1.0
+  lambda_angle: 1.0
+  lambda_valid: 1.0
+  lambda_valid_eos: 0.5
+  lambda_seg_dice: 1.0
+  lambda_seg_focal: 2.0
+
+training:
+  max_steps: 300000
+  lr: 1.0e-5
+  weight_decay: 0.01
+  betas: [0.9, 0.95]
+  eps: 1.0e-8
+  min_lr: null
+  warmup_steps: 0
+  mixed_precision: "no"
+  gradient_clip: 0.1
+  gradient_accumulation_steps: 1
+  abort_on_nonfinite_loss: true
+  abort_on_nonfinite_grad: true
+
+  use_ema: false
+  ema_rate: 0.9999
+
+  save_every_n_steps: 5000
+  checkpoint_dir: null
+  log_every_n_steps: 1
+
+  inference_every_n_steps: 1000
+  val_every_n_steps: 1000
+  val_dir: null
+  val_num: 40
+  val_set_name: mini_val_8x5
+  trainval_dir: null
+  trainval_num: 0
+
+evaluation:
+  seed: 20260808
+  mini_val_scenes: 8
+  checkpoint_selection_scenes: 100
+  augmentations_per_scene: 5

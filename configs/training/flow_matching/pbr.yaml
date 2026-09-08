@@ -1,0 +1,156 @@
+project_name: Fire3D
+
+data:
+  data_dir_info:
+    scene_data: {}
+    object_data:
+      data_dir: ${FIRE3D_OBJECT_ROOT}
+      render_dir: ${FIRE3D_OBJECT_ROOT}/render
+      shape_x2_latents_dir: ${FIRE3D_OBJECT_ROOT}/shape_hcvae_latents
+      shape_x2_latent_key: trellis2_shape_x2_encoding
+      pbr_x2_latents_dir: ${FIRE3D_OBJECT_ROOT}/pbr_hcvae_latents
+      pbr_x2_latent_key: trellis2_pbr_x2_encoding
+      sources: [3D-FUTURE, ABO, HSSD, ObjaverseXL_github, ObjaverseXL_sketchfab]
+
+  train_split_ratio: 0.95
+  train_val_split: true
+  batch_size: 1
+  num_workers: 4
+  num_object_data_per_sample: 48
+  train_num_max_objects: 48
+  object_data_grid_cols: 8
+  object_data_spacing: 1.2
+  object_data_scale_min: 0.8
+  object_data_scale_max: 1.2
+  object_shape_trellis2_rotation: ['000', '090', '180', '270']
+  shape_x2_channels: 64
+  pbr_x2_channels: 64
+  dino_upsample: 4
+  augment: false
+  depth_noise_std: 0.0
+  camera_translation_noise_std: 0.0
+  camera_rotation_noise_std: 0.0
+  perception_translation_noise_std: 0.0
+  perception_rotation_noise_std: 0.0
+  perception_scale_noise_std: 0.0
+  perception_instance_id_recall: 1.0
+  perception_instance_id_recall_background_prob: 0.0
+  perception_instance_id_corruption_prob: 0.0
+  perception_instance_id_corruption_background_prob: 0.0
+  perception_instance_id_corruption_near_radius: 1.0
+  split_manifest_dir: ${FIRE3D_MANIFEST_ROOT}
+  split_manifest_prefix: obj_gen_feat_with_objects
+  paired_manifest_paths:
+    train: ${FIRE3D_MANIFEST_ROOT}/pbr_flow_train.jsonl
+    trainval: ${FIRE3D_MANIFEST_ROOT}/pbr_flow_trainval.jsonl
+    val: ${FIRE3D_MANIFEST_ROOT}/pbr_flow_val.jsonl
+  use_split_manifests: true
+  strict_split_manifests: true
+  loader_seed: 20260718
+
+  object_render_augment:
+    enabled: true
+    probability: 1.0
+    crop_scale: [0.6, 1.0]
+    aspect_ratio: [0.8, 1.25]
+    center_jitter: 0.2
+    min_foreground_retained: 0.65
+    max_crop_attempts: 10
+    keep_white_background_probability: 0.10
+    solid_background_probability: 0.45
+    noisy_background_probability: 0.45
+    background_noise_std: [0.0, 0.08]
+    low_frequency_noise_probability: 0.5
+
+model:
+  resolution: 1024
+  max_cond_len: 512
+
+  shape_x2:
+    channels: 64
+    ckpt_root: ${FIRE3D_MODEL_ROOT}/reconstruction/vae/shape
+    step: null
+    x2_latent_stats_path: ${FIRE3D_MODEL_ROOT}/reconstruction/stats/shape.json
+    normalize_condition: true
+
+  pbr_x2:
+    ckpt_root: ${FIRE3D_MODEL_ROOT}/reconstruction/vae/pbr
+    step: null
+    weights: normal
+    x2_latent_stats_path: ${FIRE3D_MODEL_ROOT}/reconstruction/stats/pbr.json
+    normalize_target: true
+
+  dino:
+    model_path: ${FIRE3D_MODEL_ROOT}/external/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth
+    repo_dir: ${FIRE3D_DINOV3_ROOT}
+    model_name: dinov3_vitl16
+    downsample: 16
+    upsample: 4
+    anyup_model: anyup_multi_backbone
+    anyup_repo: wimmerth/anyup
+    anyup_source: github
+    anyup_use_natten: true
+    anyup_q_chunk_size: null
+    anyup_tile_grid: 0
+    anyup_frame_batch_size: 32
+
+  appearance_condition:
+    mode: dino_rgb
+    hidden_channels: 256
+    zero_init_residual: true
+
+  context_encoder:
+    type: fourier_add
+    channels: 1024
+    fourier_sample_rate: 60
+
+  flow_model_pbr_x2:
+    resolution: 8
+    in_channels: 128
+    model_channels: 1536
+    cond_channels: 1024
+    out_channels: 64
+    num_blocks: 30
+    mlp_ratio: 5.3334
+    num_heads: 12
+    pe_mode: rope
+    share_mod: true
+    initialization: scaled
+    qk_rms_norm: true
+    qk_rms_norm_cross: true
+    dtype: bfloat16
+
+  flow_trainer_pbr_x2:
+    p_uncond: 0.1
+
+training:
+  max_steps: 1000000
+  lr: 1.0e-4
+  weight_decay: 0.01
+  betas: [0.9, 0.95]
+  eps: 1.0e-8
+  mixed_precision: bf16
+  gradient_clip: 1.0
+  gradient_clip_percentile: 95.0
+  gradient_accumulation_steps: 2
+  use_ema: true
+  ema_rate: 0.9999
+  save_every_n_steps: 5000
+  checkpoint_dir: null
+  log_every_n_steps: 25
+  inference_every_n_steps: 5000
+  val_every_n_steps: 0
+  enable_validation: false
+  val_dir: null
+  val_num: 20
+  trainval_dir: null
+  trainval_num: 5
+  checkpoint_to_cpu: true
+  checkpoint_synchronize_cuda: false
+  checkpoint_barrier: false
+  debug_cuda_sync_every_n_steps: 0
+  debug_log_batch_every_n_steps: 0
+  report_to: wandb
+  seed: 20260718
+  probe_validation_seed: 20260718
+  local_metrics_jsonl: auto

@@ -1,0 +1,51 @@
+{
+  "schema": "fire3d.baseline_registry.v1",
+  "checkout_root": "baselines/_upstream",
+  "methods": {
+    "boxer": {
+      "repository": "https://github.com/facebookresearch/boxer.git",
+      "revision": "ef6cad860a10e31e4c3eb26b1972c5022492726b",
+      "adapters": ["baselines/boxer_trellis2/run_boxer_sam2_scene.py"]
+    },
+    "efm3d": {
+      "repository": "https://github.com/xiahongchi/efm3d.git",
+      "revision": "8137a95825552924b7c93a98d1e76fb95753eb2f",
+      "adapters": ["baselines/efm3d/prepare_fire3d_scene.py", "baselines/efm3d/evaluate_scene_obbs.py"]
+    },
+    "holoscene": {
+      "repository": "https://github.com/xiahongchi/HoloScene.git",
+      "revision": "a2fae649b33196b20d553e3ad07651d2f0526ce1",
+      "adapters": ["baselines/holoscene/evaluate_release_vs_lc64_geometry.py", "baselines/holoscene/evaluate_foreground_render_psnr.py"]
+    },
+    "litereality": {
+      "repository": "https://github.com/LiteReality/LiteReality.git",
+      "revision": "5d6efd764c8e048334d9f2cf05dca09e7c312db8",
+      "adapters": ["baselines/litereality/run_scene.py", "baselines/litereality/evaluate_multiscene_comparison.py"]
+    },
+    "sam3d": {
+      "repository": "https://github.com/xiahongchi/sam3d-objects.git",
+      "revision": "5ec869616bd2c345cb89019331eaf5b5c6b0cc0e",
+      "adapters": ["baselines/sam3d/run_random20.py"]
+    },
+    "scenescript": {
+      "repository": "https://github.com/facebookresearch/scenescript.git",
+      "revision": "516472d0e62ebbf866f1125cd98c85dec315c100",
+      "adapters": ["baselines/scenescript/export_fire3d_predictions.py"]
+    },
+    "shaper": {
+      "repository": "https://github.com/xiahongchi/shaper.git",
+      "revision": "a0486d47e54cc34867fee26f13f0654404350ff6",
+      "adapters": ["baselines/shaper/process_shaper_eval_data.py", "baselines/shaper/eval_shaper_reconstruction_geometry.py"]
+    },
+    "simrecon": {
+      "repository": "https://github.com/xiac20/SimRecon.git",
+      "revision": "01e85926f0e19e89a7edbaebf095dcf01b37c8d1",
+      "adapters": ["baselines/simrecon/run_imaginarium_scene.py", "baselines/simrecon/evaluate_imaginarium_perception.py"]
+    },
+    "trellis2": {
+      "repository": "https://github.com/microsoft/TRELLIS.2.git",
+      "revision": "75fbf0183001ed9876c8dbb35de6b68552ee08bd",
+      "adapters": ["baselines/boxer_trellis2/run_trellis2_scene.py"]
+    }
+  }
+}

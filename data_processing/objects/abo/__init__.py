@@ -1,0 +1,1 @@
+"""Amazon Berkeley Objects adapter."""

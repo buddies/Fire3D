@@ -36,6 +36,18 @@ from every input photograph.
 The authoritative validation is performed on `sl-gpu-02`; the local workspace
 is a mirror of the committed release state.
 
+## ScanNet++ release-example audit
+
+The advertised ScanNet++ scene, `09bced689e`, was rerun on September 8, 2026
+through the public `fire3d infer` command with `fire3d_scannetpp_v1`. The run
+completed perception, batched reconstruction, camera sampling, and rendering
+for all 30 predicted instances. Its background audit records
+`canonical_transform.applied: true`, reduces 63,674 previously out-of-box
+points to zero, and bounds the retained 369,344 background points within
+`[-0.49, 0.49]`. The authoritative generated output is
+`results/release_validation_scannetpp_09bced689e_20260908/` on `sl-gpu-02`;
+it remains excluded from Git.
+
 ## Published artifact audit
 
 The public artifacts were verified on September 7, 2026:

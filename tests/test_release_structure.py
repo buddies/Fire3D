@@ -17,7 +17,6 @@ def test_canonical_release_wording_is_reused_verbatim():
 
 def test_release_does_not_track_runtime_artifacts_or_research_workspaces():
     forbidden = {
-        "baselines",
         "ckpts",
         "checkpoints",
         "deprecated",
@@ -26,7 +25,6 @@ def test_release_does_not_track_runtime_artifacts_or_research_workspaces():
         "results",
         "syn2real",
         "temp_scripts",
-        "train",
         "trainers",
     }
     candidates = subprocess.check_output(
@@ -66,6 +64,8 @@ def test_third_party_components_ship_license_notices():
         ROOT / "licenses/TRELLIS2_LICENSE",
         ROOT / "third_party/anyup/LICENSE",
         ROOT / "trellis2_x2/CuMesh/LICENSE",
+        ROOT / "baselines/shaper/LICENSE",
+        ROOT / "baselines/boxer_trellis2/LICENSE",
     ]
     assert all(path.is_file() for path in required)
 

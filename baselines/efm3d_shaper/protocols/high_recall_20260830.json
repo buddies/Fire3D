@@ -1,0 +1,27 @@
+{
+  "schema": "ff_efm3d_shaper_inference_protocol_v1",
+  "name": "high_recall_20260830",
+  "source": {
+    "design_record": "design/20260830_001655-0500_efm3d_fire3d_inference_repair.md"
+  },
+  "efm3d": {
+    "frame_rate": 10,
+    "frames_per_snippet": 10,
+    "stride_frames": 1,
+    "num_snips": 9999,
+    "max_points_per_frame": 20000,
+    "point_source": "global-repeat",
+    "det_threshold": 0.1,
+    "tracker_inst_threshold": 0.15,
+    "tracker_assoc_threshold": 0.1,
+    "voxel_res": 0.04,
+    "obb_only": true
+  },
+  "shaper": {
+    "prob_threshold": 0.1,
+    "padding_scale": 1.05,
+    "max_object_points": 1024,
+    "max_frames": 64,
+    "config": "quality"
+  }
+}
