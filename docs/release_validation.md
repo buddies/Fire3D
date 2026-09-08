@@ -50,12 +50,11 @@ it remains excluded from Git.
 
 ## Published artifact audit
 
-The public artifacts were verified on September 7, 2026:
+The public artifacts were verified on September 8, 2026:
 
-- Model repository revision:
-  `da94067a2e6e3a4ed18936b80c0c9549c3258fcf`.
-- Dataset repository revision:
-  `29b23029058dd828d08f6f8483ba1e796a4a76f2`.
+- The model repository contains a root `config.json` query file, stable model
+  aliases, and both shape and PBR HC-VAE encoders. The model manifest records
+  the exact public-code commit and SHA-256 digest of every model file.
 - All 376 dataset archives match the byte sizes recorded in `manifest.json`;
   the remote manifest is byte-for-byte identical to the staged manifest.
 - The dataset inventory contains exactly 67 iTHOR, 120 Imaginarium, 165
@@ -63,5 +62,7 @@ The public artifacts were verified on September 7, 2026:
 - Every published iTHOR and Imaginarium scene includes 60 exact-camera RGB
   rerenders. All 11,220 archived images across 187 scenes match the
   authoritative `renders_updated` images byte-for-byte.
+- The optional ShapeR evaluation archive contains 178 pickle-free NPZ samples
+  and includes its source attribution and license.
 - Both Hugging Face repository cards include the current teaser, method
   overview, and HC-VAE figures under stable asset names.
