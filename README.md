@@ -1,6 +1,12 @@
 # FIRE3D: Feed-forward Interactive 3D Scene Reconstruction Within A Minute
 
-Hongchi Xia, Tianhang Cheng, Wei-Chiu Ma, Shenlong Wang
+[Hongchi Xia](https://xiahongchi.github.io/)<sup>1</sup>,
+[Tianhang Cheng](https://tianhang-cheng.github.io/)<sup>1</sup>,
+[Wei-Chiu Ma](https://www.cs.cornell.edu/~weichiu/)<sup>2</sup>,
+[Shenlong Wang](https://shenlong.web.illinois.edu/)<sup>1</sup>
+
+<sup>1</sup> University of Illinois Urbana-Champaign &nbsp;&nbsp;
+<sup>2</sup> Cornell University
 
 [GitHub](https://github.com/xiahongchi/Fire3D) |
 [Models](https://huggingface.co/hongchi/Fire3D) |
@@ -16,6 +22,14 @@ mesh geometry, and texture, without test-time optimization.
 This release provides the inference code, model checkpoints, processed example
 inputs, and frozen protocols needed to reproduce Fire3D results on iTHOR,
 Imaginarium, ScanNet++, and single-image scenes.
+
+## TODO
+
+- [x] Inference code release
+- [x] Model release
+- [x] Inference data release
+- [ ] Training code release
+- [ ] Training data release
 
 ## Installation
 
