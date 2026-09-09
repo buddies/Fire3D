@@ -11,6 +11,10 @@ tags:
 
 # FIRE3D: Feed-forward Interactive 3D Scene Reconstruction Within A Minute
 
+[Paper](https://arxiv.org/pdf/2609.08848) |
+[Code](https://github.com/xiahongchi/Fire3D) |
+[Inference data](https://huggingface.co/datasets/hongchi/Fire3D)
+
 Fire3D is a unified feed-forward framework that transforms a single RGB image
 or casual RGB video into simulation-ready 3D scene assets. It predicts a
 compositional scene representation with object-level 6-DoF pose, bounding box,
@@ -146,9 +150,11 @@ included `licenses/` directory and the repository's
 ## Citation
 
 ```bibtex
-@misc{xia2026fire3d,
-  title={FIRE3D: Feed-forward Interactive 3D Scene Reconstruction Within A Minute},
-  author={Hongchi Xia and Tianhang Cheng and Wei-Chiu Ma and Shenlong Wang},
-  year={2026}
+@article{xia2026fire3d,
+  title={{FIRE3D}: Feed-forward Interactive 3D Scene Reconstruction Within A Minute},
+  author={Xia, Hongchi and Cheng, Tianhang and Ma, Wei-Chiu and Wang, Shenlong},
+  journal={arXiv preprint arXiv:2609.08848},
+  year={2026},
+  url={https://arxiv.org/pdf/2609.08848}
 }
 ```

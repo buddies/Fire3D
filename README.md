@@ -8,6 +8,7 @@
 <sup>1</sup> University of Illinois Urbana-Champaign &nbsp;&nbsp;
 <sup>2</sup> Cornell University
 
+[Paper](https://arxiv.org/pdf/2609.08848) |
 [GitHub](https://github.com/xiahongchi/Fire3D) |
 [Models](https://huggingface.co/hongchi/Fire3D) |
 [Inference data](https://huggingface.co/datasets/hongchi/Fire3D)
@@ -251,8 +252,17 @@ and the Hugging Face dataset card before redistribution or commercial use.
 
 ## Citation
 
-Citation metadata will be updated with the paper identifier when available.
-For now, use the title and authors in [CITATION.cff](CITATION.cff).
+Please cite the [Fire3D paper](https://arxiv.org/pdf/2609.08848):
+
+```bibtex
+@article{xia2026fire3d,
+  title={{FIRE3D}: Feed-forward Interactive 3D Scene Reconstruction Within A Minute},
+  author={Xia, Hongchi and Cheng, Tianhang and Ma, Wei-Chiu and Wang, Shenlong},
+  journal={arXiv preprint arXiv:2609.08848},
+  year={2026},
+  url={https://arxiv.org/pdf/2609.08848}
+}
+```
 
 ## Acknowledgements
 
