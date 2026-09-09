@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Install stable release metadata and HC-VAE encoders in a model staging tree."""
+"""Install stable release metadata and VAE encoders in a model staging tree."""
 
 from __future__ import annotations
 
@@ -15,8 +15,10 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 PUBLIC_FILES = {
     "config.json": REPO_ROOT / "docs/huggingface_model_config.json",
     "README.md": REPO_ROOT / "docs/huggingface_model_card.md",
+    "reconstruction/vae/ss/config.json": REPO_ROOT / "configs/models/ss_vae.json",
 }
 ENCODER_PATHS = {
+    "ss": "reconstruction/vae/ss/ckpts/encoder.pt",
     "shape": "reconstruction/vae/shape/ckpts/encoder.pt",
     "pbr": "reconstruction/vae/pbr/ckpts/encoder.pt",
 }
@@ -25,6 +27,7 @@ ENCODER_PATHS = {
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--staging", type=Path, required=True)
+    parser.add_argument("--ss-encoder", type=Path, required=True)
     parser.add_argument("--shape-encoder", type=Path, required=True)
     parser.add_argument("--pbr-encoder", type=Path, required=True)
     parser.add_argument(
@@ -72,6 +75,7 @@ def main() -> None:
 
     sources = {
         **PUBLIC_FILES,
+        ENCODER_PATHS["ss"]: args.ss_encoder.expanduser().resolve(),
         ENCODER_PATHS["shape"]: args.shape_encoder.expanduser().resolve(),
         ENCODER_PATHS["pbr"]: args.pbr_encoder.expanduser().resolve(),
     }
@@ -83,7 +87,11 @@ def main() -> None:
         raise ValueError("Unsupported model manifest schema")
     manifest["source_commit"] = args.source_commit or current_revision()
     records = {record["path"]: record for record in manifest.get("files", [])}
-    for relative in ("config.json", *ENCODER_PATHS.values()):
+    for relative in (
+        "config.json",
+        "reconstruction/vae/ss/config.json",
+        *ENCODER_PATHS.values(),
+    ):
         path = staging / relative
         records[relative] = {
             "path": relative,

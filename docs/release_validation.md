@@ -32,6 +32,9 @@ from every input photograph.
 7. Hugging Face archives pass checksum, whitelist, extraction, and smoke tests.
 8. Model bundle paths use stable aliases and do not expose private iteration
    identifiers in filenames, protocols, manifests, or model-card text.
+9. The sparse-structure VAE encoder and decoder load strictly as a pair, run a
+   finite `8^3 -> 2^3 -> 8^3` forward pass, and complete a one-step joint
+   encoder/decoder training smoke test on one GPU.
 
 The authoritative validation is performed on `sl-gpu-02`; the local workspace
 is a mirror of the committed release state.
@@ -53,8 +56,9 @@ it remains excluded from Git.
 The public artifacts were verified on September 8, 2026:
 
 - The model repository contains a root `config.json` query file, stable model
-  aliases, and both shape and PBR HC-VAE encoders. The model manifest records
-  the exact public-code commit and SHA-256 digest of every model file.
+  aliases, both shape and PBR HC-VAE encoders, and the sparse-structure VAE
+  encoder/decoder pair. The model manifest records the exact public-code commit
+  and SHA-256 digest of every model file.
 - All 376 dataset archives match the byte sizes recorded in `manifest.json`;
   the remote manifest is byte-for-byte identical to the staged manifest.
 - The dataset inventory contains exactly 67 iTHOR, 120 Imaginarium, 165

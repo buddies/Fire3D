@@ -1,12 +1,13 @@
 # Training
 
 The public recipes expose the model and data contracts used for Fire3D's
-perception model, three cascaded flow-matching models, and shape/PBR HC-VAEs.
-The release includes training logic and data-processing reference code, but it
-does not redistribute the training corpora. All source datasets are publicly
-available and retain their original licenses and access terms. See the
-[source-download table](../data_processing/README.md#source-downloads). For
-object training data, start from
+perception model, three cascaded flow-matching models, sparse-structure VAE,
+and shape/PBR HC-VAEs. The release includes training logic and data-processing
+reference code, but it does not redistribute the training corpora. All source
+datasets are publicly available and retain their original licenses and access
+terms. See the [source-download
+table](../data_processing/README.md#source-downloads). For object training data,
+start from
 [TRELLIS-500K](https://huggingface.co/datasets/JeffreyXiang/TRELLIS-500K)
 rather than downloading each constituent object collection independently.
 
@@ -25,6 +26,11 @@ export FIRE3D_DINOV3_ROOT=$PWD/third_party/dinov3
 HC-VAE configs accept a comma-separated list or a JSON source mapping through
 `FIRE3D_HCVAE_ROOTS`. Every root follows the TRELLIS.2 metadata/latent layout
 described by `trellis2_x2/trellis2/datasets/components.py`.
+
+The sparse-structure VAE accepts comma-separated object roots through
+`FIRE3D_SSVAE_ROOTS`. Each root is a directory of object NPZ files produced by
+the shape HC-VAE encoding stage, and each file contains its `8^3` support in a
+`coords` array.
 
 ## Launch
 
@@ -45,6 +51,10 @@ accelerate launch --num_processes 8 -m training.flow_matching.train_pbr \
   --config configs/training/flow_matching/pbr.yaml \
   --output_dir outputs/flow --exp_name pbr
 
+# Sparse-structure VAE encoder and decoder (one GPU)
+CUDA_VISIBLE_DEVICES=0 python -m training.ssvae.train \
+  --config configs/training/ssvae/default.yaml
+
 # Shape and PBR HC-VAEs (one GPU each)
 CUDA_VISIBLE_DEVICES=0 python -m training.hcvae.train \
   --config configs/training/hcvae/shape.yaml
@@ -52,9 +62,44 @@ CUDA_VISIBLE_DEVICES=0 python -m training.hcvae.train \
   --config configs/training/hcvae/pbr.yaml
 ```
 
-The released HC-VAE recipes are trained with one process on one GPU. The
+The released VAE recipes use one process on one GPU. The
 `batch_size_per_gpu` values in their configs are therefore also the effective
 global batch sizes.
+
+## Sparse-Structure VAE
+
+The standard SS-VAE path trains the encoder and decoder jointly from random
+initialization. It does not freeze either model. Each training target is the
+binary support of an `8^3` shape HC-VAE latent. Four exact quarter-yaw rotations
+provide augmentation without interpolation. The objective is
+binary-cross-entropy with logits plus a `1e-6` KL penalty. The released config
+uses an `8 x 2 x 2 x 2` latent bottleneck, EMA `0.9999`, and one GPU.
+
+Prepare the shape HC-VAE latents first, then point the trainer to one or more
+processed roots:
+
+```bash
+python data_processing/stages/latents/shape_enc_seq.py --help
+
+export FIRE3D_SSVAE_ROOTS=/path/to/source-a,/path/to/source-b
+CUDA_VISIBLE_DEVICES=0 python -m training.ssvae.train \
+  --config configs/training/ssvae/default.yaml
+```
+
+To resume from the latest complete encoder, decoder, and optimizer state:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 python -m training.ssvae.train \
+  --config configs/training/ssvae/default.yaml \
+  --resume outputs/ss_vae
+```
+
+Use a matched encoder and decoder from the same joint run. Before training a
+new sparse-structure flow model, encode every target with that selected EMA
+encoder, recompute its latent statistics, and update the artifact ID and
+SHA-256 contract in the flow config. The released pretrained flow remains
+pinned to its original latent contract; swapping only its encoder checksum is
+not valid.
 
 Perception preserves the released point-normalized `[0,24]` position-token
 contract, local-up 90-degree yaw invariance in Hungarian matching and rotation

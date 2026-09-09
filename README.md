@@ -137,6 +137,16 @@ the latent volume by 32x while preserving the geometry and appearance decoded
 by the frozen SC-VAE. The compact shape and PBR latents let Fire3D batch flow
 sampling and VAE decoding across many scene instances.
 
+### Sparse-Structure VAE
+
+The sparse-structure VAE jointly learns an encoder and decoder for binary
+object support on an `8^3` grid. Its encoder maps occupancy to an
+`8 x 2 x 2 x 2` latent, and its decoder reconstructs occupancy logits used by
+the first stage of the reconstruction cascade. Both sides are released under
+stable aliases. The normal joint-training recipe, dataset contract, and
+one-GPU launch command are documented in
+[training/README.md](training/README.md#sparse-structure-vae).
+
 ### Released Models
 
 `fire3d download --models` installs the following stable model aliases. Public
@@ -148,7 +158,7 @@ filenames intentionally do not encode private training iteration numbers.
 | Sparse-structure flow | `reconstruction/flows/ss/model.pt` | Object occupancy-latent generation |
 | Shape flow | `reconstruction/flows/shape/model.pt` | HC-VAE shape-latent generation |
 | PBR flow | `reconstruction/flows/pbr/model.pt` | HC-VAE material-latent generation |
-| Sparse-structure VAE | `reconstruction/vae/ss/ckpts/decoder.pt` | Sparse occupancy decoding |
+| Sparse-structure VAE | `reconstruction/vae/ss/ckpts/{encoder,decoder}.pt` | Dense occupancy encoding and decoding |
 | Shape HC-VAE | `reconstruction/vae/shape/ckpts/{encoder,decoder}.pt` | Shape-field compression and decoding |
 | PBR HC-VAE | `reconstruction/vae/pbr/ckpts/{encoder,decoder}.pt` | Material-field compression and decoding |
 | DINOv3 encoder | `external/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth` | Image feature extraction |
@@ -159,7 +169,7 @@ filenames intentionally do not encode private training iteration numbers.
 
 ```text
 configs/inference/       frozen public inference protocols
-configs/training/        released perception, flow, and HC-VAE recipes
+configs/training/        released perception, flow, and VAE recipes
 fire3d/                  stable command-line and runtime interface
 eval/                    perception, reconstruction, and rendering runtime
 training/                model training and validation entry points
@@ -180,12 +190,13 @@ scene matrix and the required release gates.
 ## Training And Evaluation
 
 The release includes the full model-side training paths for scene perception,
-the sparse-structure/shape/PBR flow cascade, and the shape/PBR HC-VAEs. Public
-configs retain the architectures, objectives, augmentations, and latent
-contracts used for the released models while replacing cluster paths with
-explicit environment roots. See [training/README.md](training/README.md).
-The released HC-VAE recipe uses one process on one GPU; its configured
-per-GPU batch size is therefore the effective global batch size.
+the sparse-structure/shape/PBR flow cascade, the jointly trained
+sparse-structure VAE, and the shape/PBR HC-VAEs. Public configs retain the
+architectures, objectives, augmentations, and latent contracts used for the
+released models while replacing cluster paths with explicit environment
+roots. See [training/README.md](training/README.md). The released VAE recipes
+use one process on one GPU; each configured per-GPU batch size is therefore
+the effective global batch size.
 
 Perception evaluation and the iTHOR/Imaginarium reconstruction benchmarks are
 under `eval/perception/` and `benchmarks/scene_reconstruction/`. A compact,

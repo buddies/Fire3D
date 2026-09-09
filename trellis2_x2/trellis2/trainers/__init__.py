@@ -7,6 +7,7 @@ import importlib
 
 _ATTRIBUTES = {
     "BasicTrainer": "basic",
+    "SSX2Trainer": "vae.ss_x2",
     "ShapeVaeX2Trainer": "vae.shape_vae_x2",
     "PbrVaeX2Trainer": "vae.pbr_vae_x2",
 }

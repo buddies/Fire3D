@@ -83,6 +83,7 @@ def test_vendored_trellis_decoder_modules_import(monkeypatch):
     monkeypatch.syspath_prepend(str(ROOT / "trellis2_x2"))
     from trellis2 import models
 
+    assert models.SparseStructureEncoder is not None
     assert models.SparseStructureDecoder is not None
     assert models.SparseUnetVaeDecoder is not None
     assert models.FlexiDualGridVaeDecoder is not None

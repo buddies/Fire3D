@@ -37,8 +37,10 @@ def test_model_release_builder_adds_query_file_and_stable_encoder_aliases(tmp_pa
             }
         )
     )
+    ss_encoder = tmp_path / "ss.pt"
     shape_encoder = tmp_path / "shape.pt"
     pbr_encoder = tmp_path / "pbr.pt"
+    ss_encoder.write_bytes(b"ss-encoder")
     shape_encoder.write_bytes(b"shape-encoder")
     pbr_encoder.write_bytes(b"pbr-encoder")
 
@@ -49,6 +51,8 @@ def test_model_release_builder_adds_query_file_and_stable_encoder_aliases(tmp_pa
             str(ROOT / "scripts/prepare_model_release.py"),
             "--staging",
             str(staging),
+            "--ss-encoder",
+            str(ss_encoder),
             "--shape-encoder",
             str(shape_encoder),
             "--pbr-encoder",
@@ -69,11 +73,19 @@ def test_model_release_builder_adds_query_file_and_stable_encoder_aliases(tmp_pa
         "fire3d_model_bundle_v1"
     )
     for relative, payload in {
+        "reconstruction/vae/ss/ckpts/encoder.pt": b"ss-encoder",
         "reconstruction/vae/shape/ckpts/encoder.pt": b"shape-encoder",
         "reconstruction/vae/pbr/ckpts/encoder.pt": b"pbr-encoder",
     }.items():
         assert (staging / relative).read_bytes() == payload
         assert records[relative]["sha256"] == digest(payload)
+    ss_config = json.loads(
+        (staging / "reconstruction/vae/ss/config.json").read_text()
+    )
+    assert set(ss_config["models"]) == {"encoder", "decoder"}
+    assert records["reconstruction/vae/ss/config.json"]["sha256"] == digest(
+        (staging / "reconstruction/vae/ss/config.json").read_bytes()
+    )
     assert "library_name:" not in (staging / "README.md").read_text().split("---", 2)[1]
 
 

@@ -1,0 +1,66 @@
+# Fire3D sparse-structure VAE: jointly trained encoder and decoder.
+
+models:
+  encoder:
+    name: SparseStructureEncoder
+    args:
+      in_channels: 1
+      latent_channels: 8
+      num_res_blocks: 2
+      num_res_blocks_middle: 3
+      channels: [32, 128, 512]
+      use_fp16: true
+  decoder:
+    name: SparseStructureDecoder
+    args:
+      out_channels: 1
+      latent_channels: 8
+      num_res_blocks: 2
+      num_res_blocks_middle: 3
+      channels: [512, 128, 32]
+      use_fp16: true
+
+dataset:
+  name: SparseStructure
+  args:
+    roots: ${FIRE3D_SSVAE_ROOTS}
+    resolution: 8
+    rotations: [0, 90, 180, 270]
+
+trainer:
+  name: SSX2Trainer
+  args:
+    output_dir: outputs/ss_vae
+    load_dir: null
+    step: null
+    batch_size_per_gpu: 256
+    batch_split: 1
+    num_workers: 8
+    max_steps: 1000000
+    optimizer:
+      name: AdamW
+      args:
+        lr: 1.0e-4
+        weight_decay: 0.01
+        betas: [0.9, 0.99]
+    lr_scheduler:
+      name: CosineAnnealingLR
+      args:
+        T_max: 1000000
+        eta_min: 1.0e-6
+    grad_clip: 1.0
+    ema_rate: 0.9999
+    mix_precision_mode: inflat_all
+    mix_precision_dtype: float16
+    fp16_max_log_scale: 16.0
+    loss_type: bce
+    lambda_kl: 1.0e-6
+    i_print: 100
+    i_log: 100
+    i_sample: 50000
+    i_save: 50000
+    i_ddpcheck: null
+    wandb:
+      enabled: false
+      project: Fire3D
+      name: ss_vae

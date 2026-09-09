@@ -41,12 +41,19 @@ for root in (REPO_ROOT, TRELLIS_ROOT):
 from training.config import load_config
 
 
-def parse_args() -> tuple[argparse.Namespace, list[str]]:
-    parser = argparse.ArgumentParser(description="Train a Fire3D HC-VAE")
+DEFAULT_CONFIG = REPO_ROOT / "configs/training/hcvae/shape.yaml"
+
+
+def parse_args(
+    *,
+    default_config: Path = DEFAULT_CONFIG,
+    description: str = "Train a Fire3D HC-VAE",
+) -> tuple[argparse.Namespace, list[str]]:
+    parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--config",
         type=str,
-        default=str(REPO_ROOT / "configs/training/hcvae/shape.yaml"),
+        default=str(default_config),
         help="YAML/JSON experiment config",
     )
     parser.add_argument(
@@ -195,8 +202,16 @@ def save_run_config(config: dict[str, Any], argv: list[str], output_dir: str) ->
         f.write(" ".join(argv) + "\n")
 
 
-def main() -> None:
-    args, overrides = parse_args()
+def run_training(
+    *,
+    default_config: Path = DEFAULT_CONFIG,
+    description: str = "Train a Fire3D HC-VAE",
+    heading: str = "Fire3D Hierarchical Compression VAE Training",
+) -> None:
+    args, overrides = parse_args(
+        default_config=default_config,
+        description=description,
+    )
     config = update_config(load_config(args.config), overrides)
 
     is_ddp, rank, local_rank, world_size = setup_ddp()
@@ -219,7 +234,7 @@ def main() -> None:
 
     if is_master:
         print("=" * 80)
-        print("Fire3D Hierarchical Compression VAE Training")
+        print(heading)
         print("=" * 80)
         print(f"Config: {args.config}")
         print(f"Device: {device}")
@@ -263,6 +278,10 @@ def main() -> None:
 
     if is_ddp:
         dist.destroy_process_group()
+
+
+def main() -> None:
+    run_training()
 
 
 if __name__ == "__main__":

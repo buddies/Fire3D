@@ -6,6 +6,7 @@ import importlib
 
 
 _ATTRIBUTES = {
+    "SparseStructure": "ss",
     "SLat": "structured_latent",
     "SLatShape": "structured_latent_shape",
     "SLatPbrOnly": "structured_latent_pbr_only",

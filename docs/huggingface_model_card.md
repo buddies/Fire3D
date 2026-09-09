@@ -51,7 +51,7 @@ retaining the frozen TRELLIS.2 decoding path.
 ## Model Bundle
 
 The repository contains the scene perception checkpoint, the three
-flow-matching checkpoints, sparse VAE decoders, latent normalization
+flow-matching checkpoints, sparse VAE encoders and decoders, latent normalization
 statistics, and the TRELLIS.2 shape/PBR decoders used by the frozen release
 protocols. `manifest.json` records the byte size and SHA-256 digest of every
 inference file; `checksums.sha256` provides the same values in standard form.
@@ -68,7 +68,7 @@ frozen TRELLIS.2 SC-VAE decoding path.
 | Sparse-structure flow | `reconstruction/flows/ss/model.pt` |
 | Shape flow | `reconstruction/flows/shape/model.pt` |
 | PBR flow | `reconstruction/flows/pbr/model.pt` |
-| Sparse-structure VAE | `reconstruction/vae/ss/ckpts/decoder.pt` |
+| Sparse-structure VAE | `reconstruction/vae/ss/ckpts/encoder.pt`, `decoder.pt` |
 | Shape HC-VAE | `reconstruction/vae/shape/ckpts/encoder.pt`, `decoder.pt` |
 | PBR HC-VAE | `reconstruction/vae/pbr/ckpts/encoder.pt`, `decoder.pt` |
 | DINOv3 encoder | `external/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth` |
@@ -77,6 +77,14 @@ frozen TRELLIS.2 SC-VAE decoding path.
 
 Public filenames intentionally do not encode private training iteration
 numbers.
+
+The sparse-structure VAE encoder and decoder operate on binary `8^3` object
+supports through an `8 x 2 x 2 x 2` latent. The normal joint-training recipe
+uses BCE-with-logits plus KL and is available in the
+[code release](https://github.com/xiahongchi/Fire3D/blob/main/training/README.md#sparse-structure-vae).
+When training a new SS flow, regenerate its latent cache and statistics with a
+matched VAE encoder. The released pretrained flow remains pinned to its own
+latent artifact contract.
 
 The root `config.json` is the model repository's Hugging Face query file. A
 normal `snapshot_download` includes it in the model snapshot, allowing the Hub

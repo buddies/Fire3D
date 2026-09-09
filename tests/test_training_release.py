@@ -132,9 +132,12 @@ def test_huggingface_model_download_count_uses_root_query_file():
     assert "https://huggingface.co/docs/hub/models-download-stats" in card
 
 
-def test_hcvae_encoder_and_decoder_public_aliases_are_documented():
+def test_vae_encoder_and_decoder_public_aliases_are_documented():
     for path in (ROOT / "README.md", ROOT / "docs/huggingface_model_card.md"):
         text = path.read_text(encoding="utf-8")
+        assert "reconstruction/vae/ss/ckpts/encoder.pt" in text or (
+            "reconstruction/vae/ss/ckpts/{encoder,decoder}.pt" in text
+        )
         assert "reconstruction/vae/shape/ckpts/encoder.pt" in text or "{encoder,decoder}.pt" in text
         assert "reconstruction/vae/pbr/ckpts/encoder.pt" in text or "{encoder,decoder}.pt" in text
 
@@ -150,6 +153,27 @@ def test_hcvae_release_recipe_uses_one_gpu():
     launcher = (ROOT / "training/hcvae/train.py").read_text(encoding="utf-8")
     assert "distributed execution is not required" in launcher
     assert "nproc_per_node" not in launcher
+
+
+def test_ssvae_release_recipe_jointly_trains_encoder_and_decoder_on_one_gpu():
+    config_path = ROOT / "configs/training/ssvae/default.yaml"
+    config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert set(config["models"]) == {"encoder", "decoder"}
+    assert config["models"]["encoder"]["name"] == "SparseStructureEncoder"
+    assert config["models"]["decoder"]["name"] == "SparseStructureDecoder"
+    assert config["dataset"]["name"] == "SparseStructure"
+    assert config["dataset"]["args"]["resolution"] == 8
+    assert config["trainer"]["name"] == "SSX2Trainer"
+    assert config["trainer"]["args"]["loss_type"] == "bce"
+    assert config["trainer"]["args"]["lambda_kl"] == 1.0e-6
+    assert config["trainer"]["args"]["fp16_max_log_scale"] == 16.0
+
+    readme = (ROOT / "training/README.md").read_text(encoding="utf-8")
+    ssvae_section = readme.split("## Sparse-Structure VAE", 1)[1]
+    assert "CUDA_VISIBLE_DEVICES=0 python -m training.ssvae.train" in ssvae_section
+    assert "trains the encoder and decoder jointly from random" in ssvae_section
+    assert "does not freeze either model" in ssvae_section
+    assert "FIRE3D_SSVAE_ROOTS" in ssvae_section
 
 
 def test_training_data_scope_points_to_public_sources_without_promising_release():

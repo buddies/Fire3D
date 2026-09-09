@@ -86,6 +86,8 @@ class BasicTrainer:
         finetune_ckpt=None,
         log_param_stats=False,
         prefetch_data=True,
+        num_workers=64,
+        prefetch_factor=4,
         snapshot_batch_size=4,
         wandb=None,
         i_print=1000,
@@ -118,6 +120,12 @@ class BasicTrainer:
         self.ddp_init_sync = ddp_init_sync
         self.log_param_stats = log_param_stats
         self.prefetch_data = prefetch_data
+        self.num_workers = int(num_workers)
+        self.prefetch_factor = int(prefetch_factor)
+        if self.num_workers < 0:
+            raise ValueError('num_workers must be non-negative')
+        if self.prefetch_factor < 1:
+            raise ValueError('prefetch_factor must be positive')
         self.snapshot_batch_size = snapshot_batch_size
         self.wandb_config = wandb if isinstance(wandb, dict) else {}
         self.use_wandb = bool(self.wandb_config.get('enabled', False))
@@ -331,17 +339,21 @@ class BasicTrainer:
             self.dataset,
             shuffle=True,
         )
-        self.dataloader = DataLoader(
-            self.dataset,
-            batch_size=self.batch_size_per_gpu,
-            num_workers=64,
-            pin_memory=True,
-            drop_last=True,
-            persistent_workers=True,
-            prefetch_factor=4,
-            collate_fn=self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else None,
-            sampler=self.data_sampler,
-        )
+        loader_kwargs = {
+            'dataset': self.dataset,
+            'batch_size': self.batch_size_per_gpu,
+            'num_workers': self.num_workers,
+            'pin_memory': True,
+            'drop_last': True,
+            'collate_fn': self.dataset.collate_fn if hasattr(self.dataset, 'collate_fn') else None,
+            'sampler': self.data_sampler,
+        }
+        if self.num_workers > 0:
+            loader_kwargs.update(
+                persistent_workers=True,
+                prefetch_factor=self.prefetch_factor,
+            )
+        self.dataloader = DataLoader(**loader_kwargs)
         self.data_iterator = cycle(self.dataloader)
 
     def _master_params_to_state_dicts(self, master_params):
