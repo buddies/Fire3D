@@ -8,6 +8,8 @@
 #   bash scripts/install.sh                       # inference + training
 #   FIRE3D_WITH_WEBUI=1 bash scripts/install.sh   # also the Gradio WebUI
 #   FIRE3D_PYTHON_VERSION=3.11.15 bash scripts/install.sh
+#   FIRE3D_ATTENTION_BACKEND=xformers bash scripts/install.sh   # no CUDA build
+#   FIRE3D_BUILD_JOBS=1 bash scripts/install.sh   # tiny memory limit
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -18,6 +20,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # exact build.
 PYTHON_SERIES="${FIRE3D_PYTHON_SERIES:-3.11}"
 SUPPORTED_PYTHON='^3\.(10|11)(\.[0-9]+)?$'
+ATTENTION_BACKEND="${FIRE3D_ATTENTION_BACKEND:-flash_attn}"
+FLASH_ATTN_VERSION="${FIRE3D_FLASH_ATTN_VERSION:-2.7.3}"
 VENV_DIR="${FIRE3D_VENV_DIR:-$ROOT/.venv}"
 MIN_CMAKE="3.28"
 DINOV3_COMMIT="31703e4cbf1ccb7c4a72daa1350405f86754b6d1"
@@ -166,6 +170,14 @@ if ! command -v ninja >/dev/null 2>&1; then
   python -m pip install ninja
 fi
 
+# Every source build below compiles CUDA kernels with ninja, which defaults to
+# one nvcc per core at several GB each. In a memory-limited container that is
+# what gets the process OOM-killed (exit 137), so cap the parallelism instead of
+# letting the build size itself to the core count.
+export MAX_JOBS="${FIRE3D_BUILD_JOBS:-2}"
+export NVCC_THREADS="${FIRE3D_NVCC_THREADS:-1}"
+echo "[install] build parallelism: MAX_JOBS=$MAX_JOBS NVCC_THREADS=$NVCC_THREADS"
+
 python -m pip install \
   torch==2.7.1 torchvision==0.22.1 torchaudio==2.7.1 \
   --index-url https://download.pytorch.org/whl/cu128
@@ -173,7 +185,84 @@ python -m pip install -e "$ROOT[dev]"
 if [[ "${FIRE3D_WITH_WEBUI:-0}" == "1" ]]; then
   python -m pip install -e "$ROOT[webui]"
 fi
-python -m pip install spconv-cu118==2.3.8 flash-attn==2.7.3 --no-build-isolation
+
+python -m pip install spconv-cu118==2.3.8 --no-build-isolation
+
+# Attention backend. `pip install flash-attn` has no wheel on PyPI, so it
+# compiles the whole CUDA kernel suite -- by far the most memory-hungry step in
+# this script. The project publishes prebuilt wheels per torch/ABI/Python
+# combination, so try that first and only fall back to a bounded source build.
+install_flash_attn_wheel() {
+  local wheel_url
+  if [[ -n "${FIRE3D_FLASH_ATTN_WHEEL_URL:-}" ]]; then
+    echo "[install] using FIRE3D_FLASH_ATTN_WHEEL_URL: $FIRE3D_FLASH_ATTN_WHEEL_URL"
+    python -m pip install "$FIRE3D_FLASH_ATTN_WHEEL_URL"
+    return
+  fi
+  # Resolve the whole prebuilt-wheel name in one probe, and fail loudly: this
+  # function is called from an `if` condition, where bash suspends `errexit`, so
+  # a failed probe would otherwise yield an empty ABI tag and a bogus URL --
+  # silently turning a 2-minute wheel install into a multi-hour source build.
+  wheel="$(
+    FLASH_ATTN_VERSION="$FLASH_ATTN_VERSION" python - <<'PROBE'
+import os
+import sys
+
+import torch
+
+version = os.environ["FLASH_ATTN_VERSION"]
+abi = "TRUE" if torch._C._GLIBCXX_USE_CXX11_ABI else "FALSE"
+series = ".".join(torch.__version__.split(".")[:2])
+tag = "cp{}{}".format(*sys.version_info[:2])
+print(f"flash_attn-{version}+cu12torch{series}cxx11abi{abi}-{tag}-{tag}-linux_x86_64.whl")
+PROBE
+  )" || {
+    echo "[install] could not determine the flash-attn wheel name from torch." >&2
+    return 1
+  }
+  echo "[install] trying the prebuilt flash-attn wheel: $wheel"
+  python -m pip install \
+    "https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VERSION}/${wheel}"
+}
+
+case "$ATTENTION_BACKEND" in
+  flash_attn | flash_attn_3)
+    if ! install_flash_attn_wheel; then
+      cat >&2 <<MESSAGE
+[install] no prebuilt flash-attn wheel for this torch/ABI/Python combination at
+[install] v${FLASH_ATTN_VERSION} (Fire3D pins torch 2.7.1, and the published
+[install] wheel set only covers the combinations upstream built). Building from
+[install] source now -- that needs several GB of RAM and 1-3 hours of CPU, and is
+[install] what gets a memory-limited container OOM-killed (exit 137). Prefer:
+[install]   FIRE3D_ATTENTION_BACKEND=xformers bash scripts/install.sh   # no CUDA build
+[install]   FIRE3D_BUILD_JOBS=1 bash scripts/install.sh                # serial build
+[install] or point FIRE3D_FLASH_ATTN_WHEEL_URL at a wheel you host yourself.
+MESSAGE
+      if ! python -m pip install --no-build-isolation "flash-attn==${FLASH_ATTN_VERSION}"; then
+        cat >&2 <<MESSAGE
+[install] flash-attn could not be installed. Exit code 137 means the container
+[install] was killed for exceeding its memory limit; raise the limit, lower
+[install] FIRE3D_BUILD_JOBS further, or re-run with the xformers backend.
+MESSAGE
+        exit 1
+      fi
+    fi
+    ;;
+  xformers)
+    # xformers ships prebuilt wheels, so this path compiles nothing. Fire3D
+    # reads the backend from the environment at import time, so the run has to
+    # export it as well -- printed below.
+    python -m pip install xformers
+    echo "[install] installed the xformers attention backend."
+    echo "[install] export these in the serving environment so both attention paths use it:"
+    echo "[install]   export ATTN_BACKEND=xformers"
+    echo "[install]   export SPARSE_ATTN_BACKEND=xformers"
+    ;;
+  *)
+    echo "[install] unknown FIRE3D_ATTENTION_BACKEND='$ATTENTION_BACKEND' (use flash_attn, flash_attn_3, or xformers)." >&2
+    exit 1
+    ;;
+esac
 python -m pip install --no-build-isolation \
   'git+https://github.com/NVlabs/nvdiffrast.git@253ac4fcea7de5f396371124af597e6cc957bfae' \
   'git+https://github.com/facebookresearch/pytorch3d.git@75ebeeaea0908c5527e7b1e305fbc7681382db47' \

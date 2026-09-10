@@ -129,6 +129,41 @@ Notes for a shared deployment:
 * Scenes live in `data/webui/single_image`, outputs in `outputs/webui/<scene_id>`;
   retention prunes only WebUI-prefixed scenes, never a released example scene.
 
+### Memory-limited containers (kubernetes)
+
+`bash scripts/install.sh` compiles CUDA code, and because flash-attn publishes no
+wheel on PyPI, that build runs one `nvcc` per core at several GB each. A pod with
+a modest memory limit is killed mid-build:
+
+```text
+Building wheels for collected packages: flash-attn
+  Building wheel for flash-attn (pyproject.toml) ... |command terminated with exit code 137
+```
+
+Exit 137 is SIGKILL from the cgroup OOM killer, not a compiler error. Pick one:
+
+| Remedy | Command / setting |
+|---|---|
+| Skip the build | `FIRE3D_ATTENTION_BACKEND=xformers bash scripts/install.sh`, then export `ATTN_BACKEND=xformers SPARSE_ATTN_BACKEND=xformers` when serving |
+| Raise the limit | give the build container >= 16 GiB (32 GiB is comfortable at the default `FIRE3D_BUILD_JOBS=2`) |
+| Build serially | `FIRE3D_BUILD_JOBS=1 NVCC_THREADS=1 bash scripts/install.sh` (peak RSS around 5 GiB) |
+| Build outside the pod | bake the environment into an image on a large machine, then run inference only in the pod |
+| Host your own wheel | `FIRE3D_FLASH_ATTN_WHEEL_URL=https://.../flash_attn-<tag>.whl bash scripts/install.sh` |
+
+The installer caps build parallelism (`MAX_JOBS=2`, `NVCC_THREADS=1`) and tries
+the project's prebuilt flash-attn wheel before compiling anything -- the wheel
+name is derived from the installed torch series, C++11 ABI, and interpreter tag.
+That shortcut often does not apply here, though: upstream's published wheel set
+for the release we pin covers torch <= 2.6, while Fire3D pins torch 2.7.1, so a
+missing wheel (`HTTP 404` from GitHub) is normal and the script says so before
+falling back to the source build. `xformers` is a first-class backend rather than
+a shim: `modules/attention` and `modules/sparse/config.py` both select it from
+those two variables and ship an implementation for it.
+
+The build also needs several GB of scratch space under `TMPDIR` and, for the
+flash-attn source path, one to three hours of CPU. For repeat deployments the
+xformers backend or an image baked on a large machine is the better answer.
+
 ## Environment variables
 
 Every flag has an environment equivalent, plus a few that only exist as
@@ -152,6 +187,9 @@ variables:
 | `FIRE3D_WEBUI_KEEP_SCENES` / `FIRE3D_WEBUI_CONCURRENCY` | `50` / `1` |
 | `FIRE3D_MODEL_ROOT` | `checkpoints/Fire3D` |
 | `FIRE3D_DINOV3_REPO` | `third_party/dinov3` |
+| `FIRE3D_ATTENTION_BACKEND` | `flash_attn` (install-time; `xformers` avoids the CUDA build) |
+| `FIRE3D_BUILD_JOBS` / `FIRE3D_NVCC_THREADS` | `2` / `1` (install-time `MAX_JOBS`) |
+| `ATTN_BACKEND` / `SPARSE_ATTN_BACKEND` | `flash_attn` (set both to `xformers` if installed that way) |
 
 ## Outputs
 
@@ -211,5 +249,6 @@ ablation instead of a protocol reproduction.
 | Depth step fails with a `transformers` error | run the extra install; the depth checkpoint needs `transformers>=4.49` |
 | `深度估计没有得到足够的有效点` | the upload has no usable depth (flat texture, extreme crop); try another photo |
 | Reconstruction is marked failed | read `outputs/webui/<scene_id>/logs/reconstruction_batch.log`; the UI shows the log tail |
+| Install dies at `Building wheel for flash-attn` with exit 137 | container memory limit; see "Memory-limited containers" above |
 | Render preview fails | Blender is missing: `bash scripts/install_blender.sh`, or turn the preview off |
 | Every request re-loads models slowly | expected: each request is one process, and the cascade is loaded per process |

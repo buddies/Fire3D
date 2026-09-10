@@ -59,6 +59,21 @@ when the machine has neither; set `FIRE3D_PYTHON_VERSION` to pin an exact
 build. DINOv3 is installed at its pinned source revision and remains subject to
 the DINOv3 license in `licenses/DINOV3_LICENSE.md`.
 
+CUDA source builds are parallelism-capped (`FIRE3D_BUILD_JOBS`, default 2):
+unsupervised ninja builds start one `nvcc` per core at several GB each and get
+the process OOM-killed (exit 137) inside a memory-limited container. flash-attn
+is the step that hits this, so the installer first tries the project's prebuilt
+wheel -- note that upstream's published wheels for the pinned release cover
+torch <= 2.6, so with the pinned torch 2.7.1 it usually falls through to the
+bounded source build (several GB of RAM, 1-3 hours of CPU). Pods that cannot
+compile CUDA at all can install the prebuilt xformers backend instead:
+
+```bash
+FIRE3D_ATTENTION_BACKEND=xformers bash scripts/install.sh
+# then export both variables in the serving environment:
+export ATTN_BACKEND=xformers SPARSE_ATTN_BACKEND=xformers
+```
+
 For the Gradio web interface, build the environment with its extras:
 
 ```bash

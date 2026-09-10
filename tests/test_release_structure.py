@@ -98,3 +98,28 @@ def test_installer_handles_strict_shell_cuda_activation():
     # The toolkit is resolved before the multi-gigabyte downloads that need it,
     # so a missing nvcc fails immediately instead of an hour into the install.
     assert installer.index("nvcc was not found") < installer.index("torch==2.7.1")
+
+
+def test_installer_bounds_cuda_source_builds():
+    """Memory-limited containers must not compile CUDA with unbounded parallelism.
+
+    `pip install flash-attn` has no PyPI wheel, and its ninja build defaults to
+    one nvcc per core at several GB each -- that is what OOM-kills a k8s pod
+    (exit 137). The installer therefore caps the job count, prefers the
+    project's prebuilt wheel, and offers a backend that compiles nothing.
+    """
+
+    installer = (ROOT / "scripts/install.sh").read_text()
+    assert 'export MAX_JOBS="${FIRE3D_BUILD_JOBS:-' in installer
+    assert 'export NVCC_THREADS="${FIRE3D_NVCC_THREADS:-' in installer
+    # Prebuilt wheel first: the name encodes the torch series, the C++11 ABI and
+    # the interpreter tag, all of which have to match the installed torch.
+    assert "cxx11abi" in installer
+    assert "FIRE3D_ATTENTION_BACKEND" in installer
+    assert "ATTN_BACKEND=xformers" in installer
+    # Both the cap and the wheel attempt must precede any source build.
+    source_build = installer.index('--no-build-isolation "flash-attn==')
+    assert installer.index("export MAX_JOBS=") < source_build
+    assert installer.index("cxx11abi") < source_build
+    # The unbounded single-command form must not come back.
+    assert "flash-attn==2.7.3 --no-build-isolation" not in installer
