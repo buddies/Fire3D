@@ -121,7 +121,7 @@ links and Fire3D preprocessing entry points are listed in the
 git clone https://github.com/xiahongchi/Fire3D.git
 cd Fire3D
 bash scripts/install.sh
-conda activate fire3d
+source .venv/bin/activate
 bash scripts/install_blender.sh
 
 fire3d download --models

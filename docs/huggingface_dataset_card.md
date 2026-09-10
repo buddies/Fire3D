@@ -81,7 +81,7 @@ downloads. The Fire3D downloader verifies and safely extracts each archive.
 git clone https://github.com/xiahongchi/Fire3D.git
 cd Fire3D
 bash scripts/install.sh
-conda activate fire3d
+source .venv/bin/activate
 
 fire3d download --data --dataset ithor --scene-id iTHOR_FloorPlan312_physics
 fire3d download --data --dataset imaginarium --scene-id bedroom_01

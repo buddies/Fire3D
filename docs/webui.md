@@ -52,22 +52,24 @@ from the reconstructed room height instead.
 ## Setup
 
 ```bash
-# Once, on the GPU machine: CUDA extensions, PyTorch, DINOv3 source tree.
-bash scripts/install.sh
-conda activate fire3d
-
-# WebUI extras (gradio + transformers for the depth checkpoint).
-python -m pip install -e ".[webui]"
+# Once, on the GPU machine: pyenv interpreter, CUDA extensions, PyTorch,
+# DINOv3 source tree, plus gradio and transformers for the WebUI.
+FIRE3D_WITH_WEBUI=1 bash scripts/install.sh
+source .venv/bin/activate
 ```
 
-`scripts/install_blender.sh` is only needed if you enable the optional static
-render preview.
+The installer builds `./.venv` from the interpreter pyenv already resolves when
+it is Python 3.10/3.11 (`FIRE3D_PYTHON_VERSION` pins an exact build,
+`FIRE3D_VENV_DIR` moves the venv). `nvcc` must be on `PATH` or under
+`CUDA_HOME`; `scripts/install.sh` checks that, plus git and a C++ compiler,
+before downloading anything. `scripts/install_blender.sh` is only needed if you
+enable the optional static render preview.
 
 ## Run
 
 ```bash
 fire3d serve                              # http://<server>:7860
-bash scripts/run_webui.sh --port 8080
+bash scripts/run_webui.sh --port 8080     # activates ./.venv itself
 python -m fire3d.webui.app --auth user:secret
 fire3d serve --gpu 1 --render-preview      # GPU 1, also render stills
 ```

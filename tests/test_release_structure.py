@@ -91,7 +91,10 @@ def test_vendored_trellis_decoder_modules_import(monkeypatch):
 
 def test_installer_handles_strict_shell_cuda_activation():
     installer = (ROOT / "scripts/install.sh").read_text()
-    activate_offset = installer.index('conda activate "$ENV_NAME"')
+    activate_offset = installer.index('source "$VENV_DIR/bin/activate"')
     for variable in ("NVCC_PREPEND_FLAGS", "NVCC_APPEND_FLAGS"):
         initialization = f'export {variable}="${{{variable}:-}}"'
         assert installer.index(initialization) < activate_offset
+    # The toolkit is resolved before the multi-gigabyte downloads that need it,
+    # so a missing nvcc fails immediately instead of an hour into the install.
+    assert installer.index("nvcc was not found") < installer.index("torch==2.7.1")

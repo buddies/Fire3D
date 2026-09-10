@@ -7,7 +7,9 @@ name = "fire3d"
 version = "0.1.0"
 description = "Feed-forward interactive 3D scene reconstruction"
 readme = "README.md"
-requires-python = ">=3.10,<3.11"
+# 3.10 is the validated reference; 3.11.15 is the pyenv default the installer
+# reuses, so both series are installable.
+requires-python = ">=3.10,<3.12"
 license = {file = "LICENSE"}
 authors = [
   {name = "Hongchi Xia"},

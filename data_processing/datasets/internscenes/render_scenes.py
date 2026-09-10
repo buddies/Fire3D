@@ -54,7 +54,7 @@ import bmesh
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Uses compose_scenes loading (layout.json + StructureMesh via trimesh.load; objects via AssetMeshLoader).
-# Run with a Python that has trimesh and compose_scenes on path (e.g. conda env with trimesh).
+# Run with a Python that has trimesh and compose_scenes on path (e.g. the Fire3D venv).
 try:
     from compose_scenes import SceneComposer, AssetMeshLoader
     _HAS_COMPOSE_SCENES = True

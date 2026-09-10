@@ -38,22 +38,32 @@ The reference environment uses Linux, Python 3.10, CUDA 12.8, PyTorch 2.7.1,
 and Blender 4.5.1 LTS. A CUDA-capable NVIDIA GPU is required; the release
 protocols were validated on a 96 GB GPU.
 
+Setup uses pyenv for the interpreter and a project-local virtualenv for the
+dependencies:
+
 ```bash
 git clone https://github.com/xiahongchi/Fire3D.git
 cd Fire3D
-bash scripts/install.sh
-conda activate fire3d
+bash scripts/install.sh        # creates ./.venv from pyenv Python 3.10/3.11
+source .venv/bin/activate
 bash scripts/install_blender.sh
 ```
 
-`scripts/install.sh` builds the CUDA extensions used by O-Voxel and CuMesh.
-Install a CUDA 12.8-compatible NVIDIA driver and a C++ compiler before running
-it. DINOv3 is installed at its pinned source revision and remains subject to
+`scripts/install.sh` builds the CUDA extensions used by O-Voxel and CuMesh, and
+installs cmake/ninja into the venv when the host has no usable copy. Install a
+CUDA 12.8-compatible NVIDIA driver and a C++ compiler first: `nvcc` has to be
+on `PATH` (or under `CUDA_HOME`), and the script stops early when it is not.
+The interpreter pyenv already resolves -- its global, or this checkout's
+`.python-version` -- is reused when it is 3.10.x or 3.11.x, and installed only
+when the machine has neither; set `FIRE3D_PYTHON_VERSION` to pin an exact
+build. DINOv3 is installed at its pinned source revision and remains subject to
 the DINOv3 license in `licenses/DINOV3_LICENSE.md`.
 
-For the Gradio web interface, add its two extras:
+For the Gradio web interface, build the environment with its extras:
 
 ```bash
+FIRE3D_WITH_WEBUI=1 bash scripts/install.sh
+# or, into an environment that already exists:
 python -m pip install -e ".[webui]"
 ```
 
