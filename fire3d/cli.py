@@ -257,6 +257,34 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("--protocol", type=Path, default=None)
     render.add_argument("--gpu", default="0")
     render.add_argument("--skip-existing", action="store_true")
+
+    # Every `serve` flag defaults to None so an unset flag falls through to the
+    # FIRE3D_WEBUI_* environment, and from there to the built-in default.
+    serve = subparsers.add_parser(
+        "serve", help="Launch the Gradio WebUI (one RGB image -> textured 3D scene)"
+    )
+    serve.add_argument("--host", default=None, help="Bind address (default 0.0.0.0)")
+    serve.add_argument("--port", type=int, default=None, help="Port (default 7860)")
+    serve.add_argument("--share", action="store_true", default=None)
+    serve.add_argument("--auth", default=None, metavar="USER:PASSWORD")
+    serve.add_argument("--gpu", default=None, help="CUDA_VISIBLE_DEVICES value")
+    serve.add_argument(
+        "--fov", type=float, default=None, help="Nominal horizontal field of view"
+    )
+    serve.add_argument("--max-side", type=int, default=None)
+    serve.add_argument("--render-preview", action="store_true", default=None)
+    serve.add_argument(
+        "--depth-model", default=None, help="Hugging Face monocular depth model id"
+    )
+    serve.add_argument("--keep-scenes", type=int, default=None)
+    serve.add_argument("--concurrency", type=int, default=None)
+    serve.add_argument("--example-data", action="store_true", default=None)
+    serve.add_argument(
+        "--no-bootstrap",
+        action="store_true",
+        default=False,
+        help="Verify the runtime but download nothing at start-up",
+    )
     return parser
 
 
@@ -299,6 +327,12 @@ def main() -> None:
         raise SystemExit(run_sample_views(args))
     if args.command == "render":
         raise SystemExit(run_render(args))
+    if args.command == "serve":
+        # Imported lazily: the WebUI pulls in gradio, and `fire3d --help`,
+        # `download`, and `infer` should not pay for that.
+        from fire3d.webui.app import config_from_namespace, launch
+
+        raise SystemExit(launch(config_from_namespace(args)))
     parser.error(f"Unsupported command: {args.command}")
 
 

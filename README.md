@@ -51,6 +51,12 @@ Install a CUDA 12.8-compatible NVIDIA driver and a C++ compiler before running
 it. DINOv3 is installed at its pinned source revision and remains subject to
 the DINOv3 license in `licenses/DINOV3_LICENSE.md`.
 
+For the Gradio web interface, add its two extras:
+
+```bash
+python -m pip install -e ".[webui]"
+```
+
 ## Download
 
 Download the model once and select the dataset examples you want to run:
@@ -115,6 +121,31 @@ the video protocol: SS/shape/PBR flow batches of 16, VAE decode chunks of 16,
 CuMesh batches of 8, parallel UV unwrapping, and power-of-two sparse material
 queries. Their dataset-specific sampling and remeshing settings remain frozen.
 
+## Web UI
+
+The release ships a Gradio server that turns **one uploaded RGB photo** into a
+textured, interactive 3D scene, so no video, pose, or depth input is needed:
+
+```bash
+fire3d serve --host 0.0.0.0 --port 7860 --auth user:secret
+```
+
+Start-up fetches the model bundle, the pinned DINOv3 source tree, and a
+monocular depth checkpoint automatically (sentinel-based, so restarts are
+cheap), then serves a page you can open from a laptop on the same network. The
+frozen `fire3d_single_image_v1` protocol still does the reconstruction: the
+upload is turned into a `single_image` scene directory (`rgb.jpeg`,
+`aligned_pcd.ply`, `camera.json`) under `data/webui/single_image`, and the
+WebUI then runs `fire3d infer` unchanged. Outputs land in
+`outputs/webui/<scene_id>/`, with the scene at
+`reconstruction/<scene_id>/appearance/predicted_textured_world_scene.glb`.
+
+Because the protocol conditions on an organized point cloud rather than on the
+RGB image alone, the WebUI estimates metric depth (Depth Anything V2
+Metric-Indoor) and back-projects it into the gravity-aligned, metre-scaled world
+frame the released single-image scenes use. See [docs/webui.md](docs/webui.md)
+for the deployment guide, environment variables, and troubleshooting.
+
 ## Method
 
 [![Fire3D method](assets/method_overview.png)](assets/method_overview.pdf)
@@ -172,6 +203,7 @@ filenames intentionally do not encode private training iteration numbers.
 configs/inference/       frozen public inference protocols
 configs/training/        released perception, flow, and VAE recipes
 fire3d/                  stable command-line and runtime interface
+fire3d/webui/            Gradio single-image web server (see docs/webui.md)
 eval/                    perception, reconstruction, and rendering runtime
 training/                model training and validation entry points
 benchmarks/              frozen geometry and appearance evaluations
@@ -186,7 +218,8 @@ tests/                   release and protocol validation gates
 ```
 
 See [docs/release_validation.md](docs/release_validation.md) for the validation
-scene matrix and the required release gates.
+scene matrix and the required release gates, and [docs/webui.md](docs/webui.md)
+for the browser-based single-image workflow.
 
 ## Training And Evaluation
 

@@ -16,6 +16,7 @@ temp_scripts/
 baselines/_upstream/
 data_processing/_upstream/
 outputs/
+.cache/
 third_party/dinov3
 trellis2_x2/**/third_party/eigen/
 

@@ -63,6 +63,12 @@ preprocessing = [
   "pyrender>=0.1.45,<1",
   "shapely>=2.1,<3",
 ]
+webui = [
+  # gradio serves the browser UI; transformers loads the metric Depth Anything
+  # V2 checkpoint the WebUI back-projects into the protocol's input lattice.
+  "gradio>=5,<6",
+  "transformers>=4.49,<6",
+]
 dev = [
   "pytest>=8,<9",
   "ruff>=0.12,<1",
